@@ -1,0 +1,33 @@
+{
+  "videoUploader": {
+    "title": "High-Volume Video Uploader",
+    "description": "Uses S3/MinIO Multipart Upload for reliable, chunked transfer of large files.",
+    "fileInput": {
+      "label": "Select Video File (min 5MB recommended)"
+    },
+    "fileDetails": {
+      "title": "File Selected:",
+      "size": "Size: {size} MB",
+      "totalChunks": "Total Chunks: {chunks}"
+    },
+    "progress": {
+      "uploadStatus": "Upload Status:",
+      "uploadingPart": "Uploading part {current} of {total}...",
+      "complete": "100%",
+      "error": "Error"
+    },
+    "button": {
+      "uploading": "Uploading...",
+      "complete": "Upload Complete!",
+      "retry": "Retry Upload",
+      "start": "Start Multipart Upload"
+    },
+    "technicalDetails": {
+      "title": "Technical Details",
+      "currentStatus": "Current Status:",
+      "uploadId": "Upload ID:",
+      "key": "Key:",
+      "notAvailable": "N/A"
+    }
+  }
+}
