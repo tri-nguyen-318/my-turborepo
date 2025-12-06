@@ -23,7 +23,7 @@ export const nodeConfig = [
       },
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['*.mjs', '*.js'],
+          allowDefaultProject: ['*.mjs'],
         },
       },
     },
@@ -36,6 +36,6 @@ export const nodeConfig = [
     },
   },
   {
-    ignores: ['dist/**', 'build/**', '*.mjs'],
+    ignores: ['dist/**', 'build/**'],
   },
 ];
