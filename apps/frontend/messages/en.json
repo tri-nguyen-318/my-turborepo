@@ -2,6 +2,10 @@
   "videoUploader": {
     "title": "High-Volume Video Uploader",
     "description": "Uses S3/MinIO Multipart Upload for reliable, chunked transfer of large files.",
+    "uploadAnother": "Upload Another File",
+    "fileUrl": "File URL:",
+    "copyUrl": "Copy URL",
+    "openFile": "Open File",
     "fileInput": {
       "label": "Select Video File (min 5MB recommended)"
     },

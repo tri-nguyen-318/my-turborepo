@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UploadModule } from './upload/upload.module';
+import { MorganMiddleware } from './morgan/morgan.middleware';
 
 @Module({
   imports: [
@@ -14,4 +15,8 @@ import { UploadModule } from './upload/upload.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MorganMiddleware).forRoutes('*'); // Apply to all routes
+  }
+}

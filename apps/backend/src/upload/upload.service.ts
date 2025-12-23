@@ -6,6 +6,7 @@ import {
   AbortMultipartUploadCommand,
   CreateBucketCommand,
   HeadBucketCommand,
+  PutBucketPolicyCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -28,14 +29,42 @@ export class UploadService {
       this.logger.log(`🔍 Checking if bucket ${this.bucketName} exists...`);
       await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucketName }));
       this.logger.log(`✅ Bucket ${this.bucketName} exists`);
+      await this.setBucketPublicPolicy();
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'name' in error && error.name === 'NotFound') {
         this.logger.log(`📦 Creating bucket ${this.bucketName}...`);
         await this.s3Client.send(new CreateBucketCommand({ Bucket: this.bucketName }));
         this.logger.log(`✅ Bucket ${this.bucketName} created successfully`);
+        await this.setBucketPublicPolicy();
       } else {
         this.logger.error('❌ Error checking bucket existence:', error);
       }
+    }
+  }
+
+  private async setBucketPublicPolicy() {
+    try {
+      const policy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: '*',
+            Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${this.bucketName}/*`],
+          },
+        ],
+      };
+
+      const command = new PutBucketPolicyCommand({
+        Bucket: this.bucketName,
+        Policy: JSON.stringify(policy),
+      });
+
+      await this.s3Client.send(command);
+      this.logger.log(`✅ Bucket ${this.bucketName} is now publicly accessible`);
+    } catch (error) {
+      this.logger.error('❌ Error setting bucket policy:', error);
     }
   }
 
@@ -49,6 +78,7 @@ export class UploadService {
       Bucket: this.bucketName,
       Key: key,
       ContentType: contentType,
+      ACL: 'public-read',
     });
 
     const response = await this.s3Client.send(command);
