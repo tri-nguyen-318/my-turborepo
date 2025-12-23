@@ -33,5 +33,57 @@
       "key": "Key:",
       "notAvailable": "N/A"
     }
+  },
+  "main": {
+    "title": "Tri's Portfolio",
+    "welcome": "Welcome! Explore my full-stack demos and playgrounds below.",
+    "uploadDemoTitle": "File Upload Demo",
+    "uploadDemoDesc": "Upload large files with S3 multipart support.",
+    "chatDemoTitle": "Realtime Chat Demo",
+    "chatDemoDesc": "Join channels and chat in realtime using WebSockets.",
+    "emailDemoTitle": "Send Emails Demo",
+    "emailDemoDesc": "Send an email to multiple recipients at once.",
+    "invoicesDemoTitle": "Invoices Demo",
+    "invoicesDemoDesc": "Manage, search, and export invoices as CSV."
+  },
+  "chat": {
+    "channels": "Channels",
+    "newChannel": "New channel",
+    "create": "Create",
+    "yourName": "Your name",
+    "channel": "Channel",
+    "typeMessage": "Type a message...",
+    "send": "Send"
+  },
+  "emailDemo": {
+    "title": "Send Emails Demo",
+    "desc": "Send an email to multiple recipients at once.",
+    "recipientsLabel": "Recipient Emails (comma separated)",
+    "recipientsPlaceholder": "user1@example.com, user2@example.com",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "Subject",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Type your message here...",
+    "send": "Send Email",
+    "sending": "Sending...",
+    "success": "Emails sent successfully!",
+    "fail": "Failed to send emails."
+  },
+  "invoicesDemo": {
+    "title": "Invoices Demo",
+    "searchPlaceholder": "Search invoices...",
+    "customer": "Customer",
+    "amount": "Amount",
+    "date": "Date",
+    "status": "Status",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "add": "Add",
+    "cancel": "Cancel",
+    "editInvoice": "Edit Invoice",
+    "addInvoice": "Add Invoice",
+    "exportCsv": "Export CSV"
   }
 }
