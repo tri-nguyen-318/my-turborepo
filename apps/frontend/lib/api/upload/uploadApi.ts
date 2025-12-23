@@ -1,5 +1,5 @@
-import { SERVER_URL } from '@/app/components/video-uploader/config';
-import type { UploadPart } from '@/app/components/video-uploader/types';
+import { SERVER_URL } from '@/app/[locale]/components/video-uploader/config';
+import type { UploadPart } from '@/app/[locale]/components/video-uploader/types';
 import { fetchJson } from '../fetchJson';
 
 /**

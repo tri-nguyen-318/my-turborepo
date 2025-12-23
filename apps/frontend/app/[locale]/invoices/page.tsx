@@ -4,6 +4,13 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -194,14 +201,15 @@ export default function InvoicesPage() {
                 value={form.date}
                 onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
               />
-              <select
-                className="rounded border px-2 py-1"
-                value={form.status}
-                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-              >
-                <option value="Paid">{t('status') + ': Paid'}</option>
-                <option value="Unpaid">{t('status') + ': Unpaid'}</option>
-              </select>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger className="min-w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Paid">{t('status') + ': ' + t('paid')}</SelectItem>
+                  <SelectItem value="Unpaid">{t('status') + ': ' + t('unpaid')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter>
               <Button onClick={handleSave}>{editing ? t('save') : t('add')}</Button>

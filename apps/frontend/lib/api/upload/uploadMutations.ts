@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import * as uploadApi from './uploadApi';
-import type { UploadPart } from '@/app/components/video-uploader/types';
+import type { UploadPart } from '@/app/[locale]/components/video-uploader/types';
 
 /**
  * Hook to initiate multipart upload
