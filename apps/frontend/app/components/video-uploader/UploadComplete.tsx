@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { ExternalLink, Copy } from 'lucide-react';
+import Link from 'next/link';
 
 interface UploadCompleteProps {
   fileUrl: string | null;
@@ -24,7 +25,7 @@ export const UploadComplete = ({ fileUrl, onReset }: UploadCompleteProps) => {
               className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-green-300 dark:border-green-700 rounded text-sm font-mono text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
               onClick={e => e.currentTarget.select()}
             />
-            <a
+            <Link
               href={fileUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -32,7 +33,7 @@ export const UploadComplete = ({ fileUrl, onReset }: UploadCompleteProps) => {
               title={t('openFile')}
             >
               <ExternalLink className="w-5 h-5" />
-            </a>
+            </Link>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(fileUrl);

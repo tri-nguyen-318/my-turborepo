@@ -1,9 +1,9 @@
+'use client';
 import { useState, useEffect } from 'react';
 
 export const useDarkMode = () => {
   const [darkMode, setDarkMode] = useState(false);
 
-  // Initialize dark mode from localStorage
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     setDarkMode(savedDarkMode);
@@ -12,7 +12,6 @@ export const useDarkMode = () => {
     }
   }, []);
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);

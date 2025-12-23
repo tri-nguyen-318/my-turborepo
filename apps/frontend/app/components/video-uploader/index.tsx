@@ -9,9 +9,7 @@ import { ProgressBar } from './ProgressBar';
 import { UploadButton } from './UploadButton';
 import { UploadComplete } from './UploadComplete';
 import { TechnicalDetails } from './TechnicalDetails';
-import { DarkModeToggle } from './DarkModeToggle';
 import { useMultipartUpload } from './useMultipartUpload';
-import { useDarkMode } from './useDarkMode';
 import type { UploadDetails } from './types';
 import { UploadStatus } from './types';
 
@@ -22,7 +20,6 @@ const VideoUploader = () => {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<UploadStatus>(UploadStatus.IDLE);
   const [inputKey, setInputKey] = useState(0);
-  const { darkMode, toggleDarkMode } = useDarkMode();
   const [uploadDetails, setUploadDetails] = useState<UploadDetails>({
     uploadId: null,
     key: null,
@@ -69,14 +66,13 @@ const VideoUploader = () => {
   const canUpload = file && status !== UploadStatus.UPLOADING;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8 transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
             <FileUp className="w-7 h-7 mr-3 text-indigo-600 dark:text-indigo-400" />
             {t('title')}
           </h1>
-          <DarkModeToggle darkMode={darkMode} onToggle={toggleDarkMode} />
         </div>
         <p className="text-gray-500 dark:text-gray-400 mb-6">{t('description')}</p>
 
