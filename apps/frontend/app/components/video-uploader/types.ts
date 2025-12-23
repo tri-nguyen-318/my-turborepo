@@ -5,7 +5,13 @@ export interface UploadDetails {
   totalParts: number;
 }
 
-export type UploadStatus = 'idle' | 'ready' | 'uploading' | 'complete' | 'error';
+export enum UploadStatus {
+  IDLE = 'idle',
+  READY = 'ready',
+  UPLOADING = 'uploading',
+  COMPLETE = 'complete',
+  ERROR = 'error',
+}
 
 export interface UploadPart {
   PartNumber: number;
