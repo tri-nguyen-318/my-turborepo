@@ -4,6 +4,9 @@ import { getMessages } from 'next-intl/server';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ReactQueryProvider } from './providers/ReactQueryProvider';
 import LayoutWithTheme from './providers/LayoutWithTheme';
+import { hasLocale } from 'next-intl';
+import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
 import './globals.css';
 
 const geistSans = Geist({
@@ -23,17 +26,25 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-}: Readonly<{
+  params,
+}: {
   children: React.ReactNode;
-}>) {
+  params: { locale: string };
+}) {
+  // ✅ DO NOT pass locale here
   const messages = await getMessages();
 
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col h-screen`}
       >
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <LayoutWithTheme>
             <ReactQueryProvider>{children}</ReactQueryProvider>
           </LayoutWithTheme>

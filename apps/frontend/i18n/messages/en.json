@@ -44,7 +44,10 @@
     "emailDemoTitle": "Send Emails Demo",
     "emailDemoDesc": "Send an email to multiple recipients at once.",
     "invoicesDemoTitle": "Invoices Demo",
-    "invoicesDemoDesc": "Manage, search, and export invoices as CSV."
+    "invoicesDemoDesc": "Manage, search, and export invoices as CSV.",
+    "selectLanguage": "Select language",
+    "langEn": "English",
+    "langVi": "Tiếng Việt"
   },
   "chat": {
     "channels": "Channels",
@@ -84,6 +87,8 @@
     "cancel": "Cancel",
     "editInvoice": "Edit Invoice",
     "addInvoice": "Add Invoice",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "paid": "Paid",
+    "unpaid": "Unpaid"
   }
 }

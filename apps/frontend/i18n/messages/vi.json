@@ -1,0 +1,94 @@
+{
+  "videoUploader": {
+    "title": "Trình tải video dung lượng lớn",
+    "description": "Sử dụng S3/MinIO Multipart Upload để truyền tải tệp lớn an toàn.",
+    "uploadAnother": "Tải tệp khác",
+    "fileUrl": "URL tệp:",
+    "copyUrl": "Sao chép URL",
+    "openFile": "Mở tệp",
+    "fileInput": {
+      "label": "Chọn tệp video (nên từ 5MB trở lên)"
+    },
+    "fileDetails": {
+      "title": "Tệp đã chọn:",
+      "size": "Kích thước: {size} MB",
+      "totalChunks": "Tổng số phần: {chunks}"
+    },
+    "progress": {
+      "uploadStatus": "Trạng thái tải lên:",
+      "uploadingPart": "Đang tải phần {current} trên {total}...",
+      "complete": "100%",
+      "error": "Lỗi"
+    },
+    "button": {
+      "uploading": "Đang tải lên...",
+      "complete": "Tải lên hoàn tất!",
+      "retry": "Thử lại",
+      "start": "Bắt đầu tải nhiều phần"
+    },
+    "technicalDetails": {
+      "title": "Chi tiết kỹ thuật",
+      "currentStatus": "Trạng thái hiện tại:",
+      "uploadId": "Upload ID:",
+      "key": "Key:",
+      "notAvailable": "N/A"
+    }
+  },
+  "main": {
+    "title": "Portfolio của Tri",
+    "welcome": "Chào mừng! Khám phá các demo full-stack bên dưới.",
+    "uploadDemoTitle": "Demo tải tệp",
+    "uploadDemoDesc": "Tải tệp lớn với hỗ trợ S3 multipart.",
+    "chatDemoTitle": "Demo chat realtime",
+    "chatDemoDesc": "Tham gia kênh và chat realtime qua WebSocket.",
+    "emailDemoTitle": "Demo gửi email",
+    "emailDemoDesc": "Gửi email cho nhiều người cùng lúc.",
+    "invoicesDemoTitle": "Demo hóa đơn",
+    "invoicesDemoDesc": "Quản lý, tìm kiếm, xuất hóa đơn CSV.",
+    "selectLanguage": "Chọn ngôn ngữ",
+    "langEn": "English",
+    "langVi": "Tiếng Việt"
+  },
+  "chat": {
+    "channels": "Kênh",
+    "newChannel": "Kênh mới",
+    "create": "Tạo",
+    "yourName": "Tên của bạn",
+    "channel": "Kênh",
+    "typeMessage": "Nhập tin nhắn...",
+    "send": "Gửi"
+  },
+  "emailDemo": {
+    "title": "Demo gửi email",
+    "desc": "Gửi email cho nhiều người cùng lúc.",
+    "recipientsLabel": "Email người nhận (phân tách bằng dấu phẩy)",
+    "recipientsPlaceholder": "user1@example.com, user2@example.com",
+    "subjectLabel": "Chủ đề",
+    "subjectPlaceholder": "Chủ đề",
+    "messageLabel": "Nội dung",
+    "messagePlaceholder": "Nhập nội dung...",
+    "send": "Gửi email",
+    "sending": "Đang gửi...",
+    "success": "Gửi email thành công!",
+    "fail": "Gửi email thất bại."
+  },
+  "invoicesDemo": {
+    "title": "Demo hóa đơn",
+    "searchPlaceholder": "Tìm kiếm hóa đơn...",
+    "customer": "Khách hàng",
+    "amount": "Số tiền",
+    "date": "Ngày",
+    "status": "Trạng thái",
+    "actions": "Hành động",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "save": "Lưu",
+    "add": "Thêm",
+    "cancel": "Hủy",
+    "editInvoice": "Sửa hóa đơn",
+    "addInvoice": "Thêm hóa đơn",
+    "exportCsv": "Xuất CSV",
+    "paid": "Đã thanh toán",
+    "unpaid": "Chưa thanh toán"
+  }
+}
