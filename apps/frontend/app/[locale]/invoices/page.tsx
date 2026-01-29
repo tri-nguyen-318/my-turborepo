@@ -1,15 +1,9 @@
 'use client';
 import { useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +20,14 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import { DatePickerDemo as DatePicker } from '@/components/ui/date-picker';
 
 interface Invoice {
   id: number;
@@ -44,10 +46,12 @@ const initialInvoices: Invoice[] = [
 export default function InvoicesPage() {
   const t = useTranslations('invoicesDemo');
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
-  const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Invoice | null>(null);
-  const [form, setForm] = useState({ customer: '', amount: '', date: '', status: 'Paid' });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { register, handleSubmit, setValue, reset, watch, control, formState: { errors, isSubmitting } } = useForm({
+    defaultValues: { search: '', customer: '', amount: '', date: '', status: 'Paid' },
+  });
+  const search = watch('search');
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -62,12 +66,10 @@ export default function InvoicesPage() {
 
   const handleEdit = (inv: Invoice) => {
     setEditing(inv);
-    setForm({
-      customer: inv.customer,
-      amount: String(inv.amount),
-      date: inv.date,
-      status: inv.status,
-    });
+    setValue('customer', inv.customer);
+    setValue('amount', String(inv.amount));
+    setValue('date', inv.date);
+    setValue('status', inv.status);
     setDialogOpen(true);
   };
 
@@ -75,12 +77,12 @@ export default function InvoicesPage() {
     setInvoices(invoices.filter(inv => inv.id !== id));
   };
 
-  const handleSave = () => {
-    if (!form.customer || !form.amount || !form.date) return;
+  const onSubmit = (data: any) => {
+    if (!data.customer || !data.amount || !data.date) return;
     if (editing) {
       setInvoices(
         invoices.map(inv =>
-          inv.id === editing.id ? { ...editing, ...form, amount: Number(form.amount) } : inv,
+          inv.id === editing.id ? { ...editing, ...data, amount: Number(data.amount) } : inv,
         ),
       );
       setEditing(null);
@@ -89,14 +91,14 @@ export default function InvoicesPage() {
         ...invoices,
         {
           id: Date.now(),
-          customer: form.customer,
-          amount: Number(form.amount),
-          date: form.date,
-          status: form.status,
+          customer: data.customer,
+          amount: Number(data.amount),
+          date: data.date,
+          status: data.status,
         },
       ]);
     }
-    setForm({ customer: '', amount: '', date: '', status: 'Paid' });
+    reset({ search, customer: '', amount: '', date: '', status: 'Paid' });
     setDialogOpen(false);
   };
 
@@ -120,22 +122,21 @@ export default function InvoicesPage() {
     <div className="flex-1 flex flex-col items-center bg-background p-8">
       <div className="w-full max-w-4xl bg-card rounded-xl shadow-xl p-8 flex-1">
         <h1 className="text-2xl font-bold mb-4">{t('title')}</h1>
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <form className="flex flex-col sm:flex-row gap-4 mb-4" onSubmit={e => e.preventDefault()}>
           <Input
             placeholder={t('searchPlaceholder')}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            {...register('search')}
             className="flex-1"
           />
-          <Button onClick={handleExport} variant="secondary">
+          <Button type="button" onClick={handleExport} variant="secondary">
             {t('exportCsv')}
           </Button>
-        </div>
+        </form>
         <div className="flex justify-end mb-2">
           <Button
             onClick={() => {
               setEditing(null);
-              setForm({ customer: '', amount: '', date: '', status: 'Paid' });
+              reset({ search, customer: '', amount: '', date: '', status: 'Paid' });
               setDialogOpen(true);
             }}
           >
@@ -184,41 +185,63 @@ export default function InvoicesPage() {
             <DialogHeader>
               <DialogTitle>{editing ? t('editInvoice') : t('addInvoice')}</DialogTitle>
             </DialogHeader>
-            <div className="flex flex-col sm:flex-row gap-2 mb-4">
-              <Input
-                placeholder={t('customer')}
-                value={form.customer}
-                onChange={e => setForm(f => ({ ...f, customer: e.target.value }))}
-              />
-              <Input
-                placeholder={t('amount')}
-                type="number"
-                value={form.amount}
-                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-              />
-              <Input
-                placeholder={t('date') + ' (YYYY-MM-DD)'}
-                value={form.date}
-                onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-              />
-              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                <SelectTrigger className="min-w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Paid">{t('status') + ': ' + t('paid')}</SelectItem>
-                  <SelectItem value="Unpaid">{t('status') + ': ' + t('unpaid')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSave}>{editing ? t('save') : t('add')}</Button>
-              <DialogClose asChild>
-                <Button variant="ghost" type="button" onClick={() => setEditing(null)}>
-                  {t('cancel')}
-                </Button>
-              </DialogClose>
-            </DialogFooter>
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mb-4">
+              <div className="flex flex-col gap-1">
+                <label className="font-medium">{t('customer')}</label>
+                <Input
+                  placeholder={t('customer')}
+                  {...register('customer', { required: true })}
+                />
+                {errors.customer && <span className="text-red-500 text-xs">{t('required')}</span>}
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-medium">{t('amount')}</label>
+                <Input
+                  placeholder={t('amount')}
+                  type="number"
+                  {...register('amount', { required: true })}
+                />
+                {errors.amount && <span className="text-red-500 text-xs">{t('required')}</span>}
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-medium">{t('date')}</label>
+                <Controller
+                  name="date"
+                  control={control}
+                  render={({ field }) => (
+                    <DatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={date => field.onChange(date ? date.toISOString().slice(0, 10) : "")}
+                      placeholder={t('date') + ' (YYYY-MM-DD)'}
+                    />
+                  )}
+                />
+                {errors.date && <span className="text-red-500 text-xs">{t('required')}</span>}
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-medium">{t('status')}</label>
+                <Select
+                  value={watch('status')}
+                  onValueChange={val => setValue('status', val)}
+                >
+                  <SelectTrigger className="min-w-[120px]">
+                    <SelectValue placeholder={t('status')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Paid">{t('paid')}</SelectItem>
+                    <SelectItem value="Unpaid">{t('unpaid')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter className="mt-2">
+                <Button type="submit" disabled={isSubmitting}>{editing ? t('save') : t('add')}</Button>
+                <DialogClose asChild>
+                  <Button variant="ghost" type="button" onClick={() => setEditing(null)}>
+                    {t('cancel')}
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
