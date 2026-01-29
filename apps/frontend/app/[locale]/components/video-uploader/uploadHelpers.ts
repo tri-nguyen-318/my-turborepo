@@ -11,7 +11,7 @@ export const initiateMultipartUpload = async (
   contentType: string,
 ): Promise<{ uploadId: string; key: string }> => {
   console.log('📤 [STEP 2] Initiating multipart upload...');
-  const initRes = await withRetry(() => uploadApi.initiateUploadApi(filename, contentType));
+  const initRes = await withRetry(() => uploadApi.initiate(filename, contentType));
   console.log('✅ [STEP 3] Upload initiated. UploadId:', initRes.uploadId, 'Key:', initRes.key);
   return initRes;
 };
@@ -28,7 +28,7 @@ export const getSignedUploadUrl = async (
   console.log(
     `🔗 [STEP 5.${partNumber}] Getting signed URL for part ${partNumber}/${totalParts}...`,
   );
-  const urlRes = await withRetry(() => uploadApi.getSignedUrlApi(fileKey, uploadId, partNumber));
+  const urlRes = await withRetry(() => uploadApi.getSignedUrl(fileKey, uploadId, partNumber));
   console.log(`✅ Got signed URL for part ${partNumber}`);
   return urlRes.signedUrl;
 };
@@ -43,7 +43,7 @@ export const uploadChunkToS3 = async (
   contentType: string,
 ): Promise<string> => {
   console.log(`⬆️ [STEP 6.${partNumber}] Uploading chunk ${partNumber} (${chunk.size} bytes)...`);
-  const eTag = await withRetry(() => uploadApi.uploadChunkApi(signedUrl, chunk, contentType));
+  const eTag = await withRetry(() => uploadApi.uploadChunk(signedUrl, chunk, contentType));
   console.log(`✅ Part ${partNumber} uploaded. ETag:`, eTag);
   return eTag;
 };
@@ -79,7 +79,7 @@ export const completeMultipartUpload = async (
   console.log('🏁 [STEP 8] Completing multipart upload...');
   console.log('Parts to complete:', parts);
 
-  const completeRes = await withRetry(() => uploadApi.completeUploadApi(fileKey, uploadId, parts));
+  const completeRes = await withRetry(() => uploadApi.complete(fileKey, uploadId, parts));
   console.log('🎉 [STEP 9] Upload completed! Location:', completeRes.location);
   return completeRes;
 };
@@ -90,7 +90,7 @@ export const completeMultipartUpload = async (
 export const abortMultipartUpload = async (fileKey: string, uploadId: string): Promise<void> => {
   console.log('🗑️ Attempting to abort incomplete upload...');
   try {
-    await uploadApi.abortUploadApi(fileKey, uploadId);
+    await uploadApi.abort(fileKey, uploadId);
     console.log('✅ Upload aborted successfully');
   } catch (error) {
     console.error('❌ Error while aborting upload:', error);
