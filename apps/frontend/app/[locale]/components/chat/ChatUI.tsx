@@ -8,20 +8,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslations } from 'next-intl';
 
+
+type MessageStatus = 'pending' | 'sent' | 'failed';
 interface ChatMessage {
+  id?: string; // for local tracking
   channel: string;
   user: string;
   message: string;
   timestamp: number;
+  status?: MessageStatus;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_WS_URL || 'http://localhost:3000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 export default function ChatUI() {
   const t = useTranslations('chat');
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [socketReady, setSocketReady] = useState(false);
   const [channels, setChannels] = useState<string[]>(['default', 'entertainment', 'work']);
   const [currentChannel, setCurrentChannel] = useState('default');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // For tracking local messages by temp id
+  const tempIdRef = useRef(0);
   const {
     register,
     handleSubmit,
@@ -38,14 +45,36 @@ export default function ChatUI() {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+
   useEffect(() => {
     const s = io(BACKEND_URL, { transports: ['websocket'] });
     setSocket(s);
+    const onConnect = () => setSocketReady(true);
+    const onDisconnect = () => setSocketReady(false);
+    s.on('connect', onConnect);
+    s.on('disconnect', onDisconnect);
     s.emit('joinChannel', currentChannel);
     s.on('newMessage', (msg: ChatMessage) => {
-      setMessages(prev => [...prev, msg]);
+      setMessages(prev => {
+        // If this is an echo of a local pending message, update its status
+        if (msg.user && msg.message) {
+          const idx = prev.findIndex(
+            m => m.status === 'pending' && m.user === msg.user && m.message === msg.message
+          );
+          if (idx !== -1) {
+            // Update status to 'sent' and timestamp
+            const updated = [...prev];
+            updated[idx] = { ...msg, status: 'sent', id: updated[idx].id };
+            return updated;
+          }
+        }
+        // Otherwise, just add as a new message
+        return [...prev, { ...msg, status: 'sent' }];
+      });
     });
     return () => {
+      s.off('connect', onConnect);
+      s.off('disconnect', onDisconnect);
       s.disconnect();
     };
     // eslint-disable-next-line
@@ -56,15 +85,42 @@ export default function ChatUI() {
   }, [messages]);
 
   const handleSend = () => {
+    if (!socketReady) return;
     const { input, username } = getValues();
     if (!input.trim() || !username.trim()) return;
-    socket?.emit('sendMessage', {
+    const tempId = `temp-${tempIdRef.current++}`;
+    const localMsg: ChatMessage = {
+      id: tempId,
       channel: currentChannel,
       user: username,
       message: input,
       timestamp: Date.now(),
-    });
+      status: 'pending',
+    };
+    setMessages(prev => [...prev, localMsg]);
     setValue('input', '');
+    socket?.emit(
+      'sendMessage',
+      {
+        channel: currentChannel,
+        user: username,
+        message: input,
+        timestamp: localMsg.timestamp,
+      },
+      (ack: { success: boolean; error?: string }) => {
+        setMessages(prev => {
+          const idx = prev.findIndex(m => m.id === tempId);
+          if (idx === -1) return prev;
+          const updated = [...prev];
+          if (ack?.success) {
+            updated[idx] = { ...updated[idx], status: 'sent' };
+          } else {
+            updated[idx] = { ...updated[idx], status: 'failed' };
+          }
+          return updated;
+        });
+      }
+    );
   };
 
   const handleCreateChannel = () => {
@@ -134,13 +190,19 @@ export default function ChatUI() {
         <CardContent className="flex-1 flex flex-col p-0">
           <ScrollArea className="flex-1 p-4">
             {messages.map((msg, idx) => (
-              <div key={idx} className="mb-2">
+              <div key={msg.id || idx} className="mb-2 flex items-center gap-2">
                 <span className="font-semibold text-primary">{msg.user}</span>
                 <span className="mx-2 text-muted-foreground">:</span>
                 <span>{msg.message}</span>
                 <span className="ml-2 text-xs text-muted-foreground">
                   ({new Date(msg.timestamp).toLocaleTimeString()})
                 </span>
+                {msg.status === 'pending' && (
+                  <span className="text-xs text-yellow-500">⏳</span>
+                )}
+                {msg.status === 'failed' && (
+                  <span className="text-xs text-red-500" title="Failed to send">❌</span>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -151,8 +213,9 @@ export default function ChatUI() {
               {...register('input')}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
               className="flex-1"
+              disabled={!socketReady}
             />
-            <Button onClick={handleSend}>{t('send')}</Button>
+            <Button onClick={handleSend} disabled={!socketReady}>{t('send')}</Button>
           </div>
         </CardContent>
       </Card>

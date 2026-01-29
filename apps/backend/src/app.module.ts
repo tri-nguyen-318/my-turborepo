@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UploadModule } from './upload/upload.module';
 import { MorganMiddleware } from './morgan/morgan.middleware';
 import { EmailModule } from './email/email.module';
+import { ChatGateway } from './chat.gateway';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { EmailModule } from './email/email.module';
     EmailModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ChatGateway],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
