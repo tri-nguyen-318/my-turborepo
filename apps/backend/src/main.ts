@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,17 @@ async function bootstrap() {
     origin: (configService.get('FRONTEND_URL') as string) || 'http://localhost:3000',
     credentials: true,
   });
+
+  // Start RabbitMQ microservice
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [configService.get('RABBITMQ_URL') || 'amqp://guest:guest@localhost:5672'],
+      queue: 'send_email',
+      queueOptions: { durable: true },
+    },
+  });
+  await app.startAllMicroservices();
 
   // Get the PORT value from the .env file (defaults to 3000 if not found)
   const port = configService.get<number>('PORT') || 3000;

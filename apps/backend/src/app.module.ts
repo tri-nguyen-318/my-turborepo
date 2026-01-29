@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UploadModule } from './upload/upload.module';
 import { MorganMiddleware } from './morgan/morgan.middleware';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { MorganMiddleware } from './morgan/morgan.middleware';
       isGlobal: true,
     }),
     UploadModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,5 +1,5 @@
 export { fetchJson } from './fetchJson';
-export * as uploadApi from './upload/uploadApi';
+export { uploadApi } from './upload/uploadApi';
 export {
   useInitiateUpload,
   useGetSignedUrl,
