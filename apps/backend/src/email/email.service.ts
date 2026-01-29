@@ -1,21 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
-
-// Type for nodemailer JSON transport response
-type JsonTransportInfo = {
-  messageId?: string;
-  message?: string;
-  [key: string]: unknown;
-};
 import { SendEmailDto } from './dto/send-email.dto';
 import { MessagePattern } from '@nestjs/microservices';
+import { EmailQueue } from 'src/rabbitmq/email-queue';
 
 @Injectable()
 export class EmailService {
   private transporter: nodemailer.Transporter;
   private readonly logger = new Logger(EmailService.name);
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly emailQueue: EmailQueue,
+  ) {
     this.createTransporter();
   }
 
@@ -47,5 +44,11 @@ export class EmailService {
       this.logger.error('Failed to send email', error);
       throw error;
     }
+  }
+
+  async queueEmail(dto: SendEmailDto) {
+    console.log('🚀 ~ EmailService ~ queueEmail ~ dto:', dto);
+    await this.emailQueue.publishSendEmailJob(dto);
+    console.log('🚀 ~ EmailService ~ queueEmail ~ dto: as', dto);
   }
 }
