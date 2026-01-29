@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import io, { Socket } from 'socket.io-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,9 +22,20 @@ export default function ChatUI() {
   const [channels, setChannels] = useState<string[]>(['default', 'entertainment', 'work']);
   const [currentChannel, setCurrentChannel] = useState('default');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [username, setUsername] = useState('');
-  const [newChannel, setNewChannel] = useState('');
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { isSubmitting },
+    reset,
+  } = useForm({
+    defaultValues: {
+      username: '',
+      input: '',
+      newChannel: '',
+    },
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,6 +56,7 @@ export default function ChatUI() {
   }, [messages]);
 
   const handleSend = () => {
+    const { input, username } = getValues();
     if (!input.trim() || !username.trim()) return;
     socket?.emit('sendMessage', {
       channel: currentChannel,
@@ -51,15 +64,16 @@ export default function ChatUI() {
       message: input,
       timestamp: Date.now(),
     });
-    setInput('');
+    setValue('input', '');
   };
 
   const handleCreateChannel = () => {
+    const { newChannel } = getValues();
     if (!newChannel.trim() || channels.includes(newChannel)) return;
     socket?.emit('createChannel', newChannel, (res: any) => {
       if (res?.event === 'channelCreated') {
         setChannels(prev => [...prev, newChannel]);
-        setNewChannel('');
+        setValue('newChannel', '');
       }
     });
   };
@@ -73,7 +87,7 @@ export default function ChatUI() {
   };
 
   return (
-    <div className="flex rounded-lg overflow-hidden bg-background flex-1 shadow-lg">
+    <form className="flex rounded-lg overflow-hidden bg-background flex-1 shadow-lg" onSubmit={e => e.preventDefault()}>
       <Card className="w-60 min-w-[200px] flex flex-col bg-card border-0 shadow-none">
         <CardHeader className="bg-card/90">
           <CardTitle>{t('channels')}</CardTitle>
@@ -97,8 +111,7 @@ export default function ChatUI() {
           <div className="flex gap-2 mt-2">
             <Input
               placeholder={t('newChannel')}
-              value={newChannel}
-              onChange={e => setNewChannel(e.target.value)}
+              {...register('newChannel')}
               className="flex-1"
             />
             <Button onClick={handleCreateChannel} variant="secondary">
@@ -111,8 +124,7 @@ export default function ChatUI() {
         <CardHeader className="flex-row items-center gap-4 bg-card/90">
           <Input
             placeholder={t('yourName')}
-            value={username}
-            onChange={e => setUsername(e.target.value)}
+            {...register('username')}
             className="max-w-xs"
           />
           <span className="text-muted-foreground">
@@ -136,8 +148,7 @@ export default function ChatUI() {
           <div className="flex gap-2 px-4">
             <Input
               placeholder={t('typeMessage')}
-              value={input}
-              onChange={e => setInput(e.target.value)}
+              {...register('input')}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
               className="flex-1"
             />
@@ -145,6 +156,6 @@ export default function ChatUI() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </form>
   );
 }

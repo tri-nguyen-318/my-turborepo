@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { FileUp } from 'lucide-react';
 import { FileInput } from './FileInput';
@@ -16,7 +17,6 @@ import { UploadStatus } from './types';
 const VideoUploader = () => {
   const t = useTranslations('videoUploader');
   const tProgress = useTranslations('videoUploader.progress');
-  const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<UploadStatus>(UploadStatus.IDLE);
   const [inputKey, setInputKey] = useState(0);
@@ -26,6 +26,7 @@ const VideoUploader = () => {
     partsUploaded: 0,
     totalParts: 0,
   });
+  const { control, reset } = useForm({ defaultValues: { file: null } });
 
   const { handleUpload } = useMultipartUpload({
     file,
@@ -34,10 +35,8 @@ const VideoUploader = () => {
     setUploadDetails,
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+  const handleFileChange = (file: File | null) => {
+    if (file) {
       setProgress(0);
       setStatus(UploadStatus.READY);
       setUploadDetails({ uploadId: null, key: null, partsUploaded: 0, totalParts: 0 });
@@ -45,7 +44,7 @@ const VideoUploader = () => {
   };
 
   const handleReset = () => {
-    setFile(null);
+    reset();
     setProgress(0);
     setStatus(UploadStatus.IDLE);
     setUploadDetails({ uploadId: null, key: null, partsUploaded: 0, totalParts: 0 });
@@ -76,9 +75,30 @@ const VideoUploader = () => {
         </div>
         <p className="text-gray-500 dark:text-gray-400 mb-6">{t('description')}</p>
 
-        <FileInput key={inputKey} onChange={handleFileChange} disabled={isUploading} />
+        <Controller
+          name="file"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <FileInput
+              key={inputKey}
+              onChange={e => {
+                const file = e.target.files?.[0] || null;
+                onChange(file);
+                handleFileChange(file);
+              }}
+              disabled={isUploading}
+            />
+          )}
+        />
 
-        {file && <FileDetails file={file} uploadDetails={uploadDetails} />}
+        {/* FileDetails expects a file, so get it from react-hook-form */}
+        <Controller
+          name="file"
+          control={control}
+          render={({ field: { value } }) =>
+            value ? <FileDetails file={value} uploadDetails={uploadDetails} /> : null
+          }
+        />
 
         {status === UploadStatus.COMPLETE && (
           <div className="mb-6 border-t border-gray-200 dark:border-gray-700"></div>
