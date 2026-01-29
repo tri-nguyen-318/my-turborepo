@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
+import { emailApi } from '@/lib/api/email/emailApi';
 
 export default function EmailDemoPage() {
   const t = useTranslations('emailDemo');
@@ -17,10 +18,14 @@ export default function EmailDemoPage() {
     setLoading(true);
     setStatus(null);
     try {
-      // TODO: Replace with actual API call
-      await new Promise(res => setTimeout(res, 1000));
-      setStatus(t('success'));
+      const data = await emailApi.sendEmail({
+        to: emails,
+        subject,
+        text: body,
+      });
+      setStatus(t('success') + ` (ID: ${data.messageId})`);
     } catch (e) {
+      console.error(e);
       setStatus(t('fail'));
     } finally {
       setLoading(false);

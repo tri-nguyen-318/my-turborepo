@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import * as uploadApi from './uploadApi';
+import { uploadApi } from './uploadApi';
 import type { UploadPart } from '@/app/[locale]/components/video-uploader/types';
 
 /**
@@ -8,7 +8,7 @@ import type { UploadPart } from '@/app/[locale]/components/video-uploader/types'
 export const useInitiateUpload = () => {
   return useMutation({
     mutationFn: ({ filename, contentType }: { filename: string; contentType: string }) =>
-      uploadApi.initiateUploadApi(filename, contentType),
+      uploadApi.initiate(filename, contentType),
   });
 };
 
@@ -25,7 +25,7 @@ export const useGetSignedUrl = () => {
       key: string;
       uploadId: string;
       partNumber: number;
-    }) => uploadApi.getSignedUrlApi(key, uploadId, partNumber),
+    }) => uploadApi.getSignedUrl(key, uploadId, partNumber),
   });
 };
 
@@ -42,7 +42,7 @@ export const useUploadChunk = () => {
       signedUrl: string;
       chunk: Blob;
       contentType: string;
-    }) => uploadApi.uploadChunkApi(signedUrl, chunk, contentType),
+    }) => uploadApi.uploadChunk(signedUrl, chunk, contentType),
   });
 };
 
@@ -59,7 +59,7 @@ export const useCompleteUpload = () => {
       key: string;
       uploadId: string;
       parts: UploadPart[];
-    }) => uploadApi.completeUploadApi(key, uploadId, parts),
+    }) => uploadApi.complete(key, uploadId, parts),
   });
 };
 
@@ -69,6 +69,6 @@ export const useCompleteUpload = () => {
 export const useAbortUpload = () => {
   return useMutation({
     mutationFn: ({ key, uploadId }: { key: string; uploadId: string }) =>
-      uploadApi.abortUploadApi(key, uploadId),
+      uploadApi.abort(key, uploadId),
   });
 };

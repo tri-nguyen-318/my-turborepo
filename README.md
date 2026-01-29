@@ -59,7 +59,7 @@ Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
    ```env
    NODE_ENV=development
-   PORT=3001
+   PORT=3002
    FRONTEND_URL=http://localhost:3000
 
    # MinIO Configuration

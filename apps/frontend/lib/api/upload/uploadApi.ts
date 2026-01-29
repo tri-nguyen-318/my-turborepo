@@ -5,11 +5,11 @@ import { fetchJson } from '../fetchJson';
 /**
  * API call to initiate multipart upload
  */
-export const initiateUploadApi = async (
+const initiate = async (
   filename: string,
   contentType: string,
 ): Promise<{ uploadId: string; key: string }> => {
-  return fetchJson(`${SERVER_URL}/initiate`, {
+  return fetchJson(`${SERVER_URL}/api/upload/initiate`, {
     method: 'POST',
     body: JSON.stringify({ filename, contentType }),
   });
@@ -18,12 +18,12 @@ export const initiateUploadApi = async (
 /**
  * API call to get signed upload URL for a part
  */
-export const getSignedUrlApi = async (
+const getSignedUrl = async (
   key: string,
   uploadId: string,
   partNumber: number,
 ): Promise<{ signedUrl: string }> => {
-  return fetchJson(`${SERVER_URL}/url`, {
+  return fetchJson(`${SERVER_URL}/api/upload/url`, {
     method: 'POST',
     body: JSON.stringify({ key, uploadId, partNumber }),
   });
@@ -32,7 +32,7 @@ export const getSignedUrlApi = async (
 /**
  * API call to upload chunk to S3/MinIO
  */
-export const uploadChunkApi = async (
+const uploadChunk = async (
   signedUrl: string,
   chunk: Blob,
   contentType: string,
@@ -61,12 +61,12 @@ export const uploadChunkApi = async (
 /**
  * API call to complete multipart upload
  */
-export const completeUploadApi = async (
+const complete = async (
   key: string,
   uploadId: string,
   parts: UploadPart[],
 ): Promise<{ location: string; bucket: string; key: string; etag: string }> => {
-  return fetchJson(`${SERVER_URL}/complete`, {
+  return fetchJson(`${SERVER_URL}/api/upload/complete`, {
     method: 'POST',
     body: JSON.stringify({ key, uploadId, parts }),
   });
@@ -75,9 +75,17 @@ export const completeUploadApi = async (
 /**
  * API call to abort multipart upload
  */
-export const abortUploadApi = async (key: string, uploadId: string): Promise<void> => {
-  await fetchJson(`${SERVER_URL}/abort`, {
+const abort = async (key: string, uploadId: string): Promise<void> => {
+  await fetchJson(`${SERVER_URL}/api/upload/abort`, {
     method: 'POST',
     body: JSON.stringify({ key, uploadId }),
   });
+};
+
+export const uploadApi = {
+  initiate,
+  getSignedUrl,
+  uploadChunk,
+  complete,
+  abort,
 };
