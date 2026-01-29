@@ -10,7 +10,7 @@ export class EmailController {
   @Post('send')
   async sendEmail(@Body() sendEmailDto: SendEmailDto) {
     console.log('🚀 ~ EmailController ~ sendEmail ~ sendEmailDto:', sendEmailDto);
-    await this.emailService.queueEmail(sendEmailDto);
-    return { success: true, queued: true };
+    await this.emailService.sendEmail(sendEmailDto);
+    return { success: true };
   }
 }

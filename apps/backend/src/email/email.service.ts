@@ -27,7 +27,6 @@ export class EmailService {
     });
   }
 
-  @MessagePattern('send_email')
   async sendEmail(sendEmailDto: SendEmailDto) {
     const { to, subject, text } = sendEmailDto;
     this.logger.log(`Attempting to send email to ${to} with subject "${subject}"`);
@@ -44,11 +43,5 @@ export class EmailService {
       this.logger.error('Failed to send email', error);
       throw error;
     }
-  }
-
-  async queueEmail(dto: SendEmailDto) {
-    console.log('🚀 ~ EmailService ~ queueEmail ~ dto:', dto);
-    await this.emailQueue.publishSendEmailJob(dto);
-    console.log('🚀 ~ EmailService ~ queueEmail ~ dto: as', dto);
   }
 }
