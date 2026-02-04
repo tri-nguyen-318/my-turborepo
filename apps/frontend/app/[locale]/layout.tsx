@@ -4,6 +4,7 @@ import { getMessages } from 'next-intl/server';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ReactQueryProvider } from './providers/ReactQueryProvider';
 import LayoutWithTheme from './providers/LayoutWithTheme';
+import { AuthProvider } from './providers/AuthProvider';
 import { hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
@@ -51,7 +52,7 @@ export default async function RootLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
   // ✅ DO NOT pass locale here
   const messages = await getMessages();
@@ -85,9 +86,11 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col h-screen`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <LayoutWithTheme>
-            <ReactQueryProvider>{children}</ReactQueryProvider>
-          </LayoutWithTheme>
+          <AuthProvider>
+            <LayoutWithTheme>
+              <ReactQueryProvider>{children}</ReactQueryProvider>
+            </LayoutWithTheme>
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

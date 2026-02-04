@@ -45,6 +45,8 @@
     "emailDemoDesc": "Send an email to multiple recipients at once.",
     "invoicesDemoTitle": "Invoices Demo",
     "invoicesDemoDesc": "Manage, search, and export invoices as CSV.",
+    "leaderboardDemoTitle": "Real-time Leaderboard",
+    "leaderboardDemoDesc": "Live ranking updates using Redis and Socket.io.",
     "selectLanguage": "Select language",
     "langEn": "English",
     "langVi": "Tiếng Việt"

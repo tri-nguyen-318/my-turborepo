@@ -19,7 +19,7 @@ interface ChatMessage {
   status?: MessageStatus;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function ChatUI() {
   const t = useTranslations('chat');
   const [socket, setSocket] = useState<Socket | null>(null);

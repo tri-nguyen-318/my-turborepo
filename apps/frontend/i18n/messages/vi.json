@@ -45,6 +45,8 @@
     "emailDemoDesc": "Gửi email cho nhiều người cùng lúc.",
     "invoicesDemoTitle": "Demo hóa đơn",
     "invoicesDemoDesc": "Quản lý, tìm kiếm, xuất hóa đơn CSV.",
+    "leaderboardDemoTitle": "Bảng xếp hạng Real-time",
+    "leaderboardDemoDesc": "Cập nhật xếp hạng trực tiếp dùng Redis và Socket.io.",
     "selectLanguage": "Chọn ngôn ngữ",
     "langEn": "English",
     "langVi": "Tiếng Việt"

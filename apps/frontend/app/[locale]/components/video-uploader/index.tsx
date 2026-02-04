@@ -26,7 +26,8 @@ const VideoUploader = () => {
     partsUploaded: 0,
     totalParts: 0,
   });
-  const { control, reset } = useForm({ defaultValues: { file: null } });
+  const { control, reset, watch } = useForm({ defaultValues: { file: null } });
+  const file: File | null = watch('file');
 
   const { handleUpload } = useMultipartUpload({
     file,
@@ -52,7 +53,7 @@ const VideoUploader = () => {
   };
 
   const fileUrl = uploadDetails.key
-    ? `http://localhost:9000/video-uploads/${uploadDetails.key}`
+    ? `${process.env.NEXT_PUBLIC_MINIO_URL}/video-uploads/${uploadDetails.key}`
     : null;
 
   const displayProgress = useMemo(() => {
@@ -78,7 +79,7 @@ const VideoUploader = () => {
         <Controller
           name="file"
           control={control}
-          render={({ field: { onChange, value } }) => (
+          render={({ field: { onChange } }) => (
             <FileInput
               key={inputKey}
               onChange={e => {
@@ -96,7 +97,7 @@ const VideoUploader = () => {
           name="file"
           control={control}
           render={({ field: { value } }) =>
-            value ? <FileDetails file={value} uploadDetails={uploadDetails} /> : null
+            value ? <FileDetails file={value} uploadDetails={uploadDetails} /> : <></>
           }
         />
 
