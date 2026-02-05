@@ -7,7 +7,7 @@
     "copyUrl": "Sao chép URL",
     "openFile": "Mở tệp",
     "fileInput": {
-      "label": "Chọn tệp video (nên từ 5MB trở lên)"
+      "label": "Chọn tệp (ảnh hoặc video)"
     },
     "fileDetails": {
       "title": "Tệp đã chọn:",

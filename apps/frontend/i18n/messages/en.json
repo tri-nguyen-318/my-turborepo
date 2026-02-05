@@ -7,7 +7,7 @@
     "copyUrl": "Copy URL",
     "openFile": "Open File",
     "fileInput": {
-      "label": "Select Video File (min 5MB recommended)"
+      "label": "Select File (image or video)"
     },
     "fileDetails": {
       "title": "File Selected:",
