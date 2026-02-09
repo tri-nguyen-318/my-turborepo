@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { format } from "date-fns"
+import dayjs from "dayjs"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -16,23 +16,32 @@ interface DatePickerProps {
   value?: Date;
   onChange?: (date: Date | undefined) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export function DatePickerDemo({ value, onChange, placeholder }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder, disabled }: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          data-empty={!value}
-          className="data-[empty=true]:text-muted-foreground w-[280px] justify-start text-left font-normal"
+          disabled={disabled}
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !value && "text-muted-foreground"
+          )}
         >
-          <CalendarIcon />
-          {value ? format(value, "PPP") : <span>{placeholder || "Pick a date"}</span>}
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {value ? dayjs(value).format("MMMM D, YYYY") : <span>{placeholder || "Pick a date"}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar mode="single" selected={value} onSelect={onChange} />
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar 
+            mode="single" 
+            selected={value} 
+            onSelect={onChange} 
+            initialFocus
+        />
       </PopoverContent>
     </Popover>
   );
