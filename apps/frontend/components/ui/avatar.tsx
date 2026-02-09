@@ -23,11 +23,16 @@ function Avatar({
 
 function AvatarImage({
   className,
+  src,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+  // If src is an empty string, treat it as undefined to prevent browser from downloading the page again
+  const validSrc = src === "" ? undefined : src
+
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
+      src={validSrc}
       className={cn("aspect-square size-full", className)}
       {...props}
     />

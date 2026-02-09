@@ -8,10 +8,12 @@ import { fetchJson } from '../fetchJson';
 const initiate = async (
   filename: string,
   contentType: string,
+  token: string
 ): Promise<{ uploadId: string; key: string }> => {
-  return fetchJson(`${SERVER_URL}/api/upload/initiate`, {
+  return fetchJson(`${SERVER_URL || 'http://localhost:3002'}/api/upload/initiate`, {
     method: 'POST',
     body: JSON.stringify({ filename, contentType }),
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
@@ -22,10 +24,12 @@ const getSignedUrl = async (
   key: string,
   uploadId: string,
   partNumber: number,
+  token: string
 ): Promise<{ signedUrl: string }> => {
-  return fetchJson(`${SERVER_URL}/api/upload/url`, {
+  return fetchJson(`${SERVER_URL || 'http://localhost:3002'}/api/upload/url`, {
     method: 'POST',
     body: JSON.stringify({ key, uploadId, partNumber }),
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
@@ -40,7 +44,7 @@ const uploadChunk = async (
   const response = await fetch(signedUrl, {
     method: 'PUT',
     body: chunk,
-    headers: { 'Content-Type': contentType || 'application/octet-stream' },
+    // headers: { 'Content-Type': contentType || 'application/octet-stream' },
   });
 
   const eTag = response.headers.get('ETag');
@@ -65,20 +69,23 @@ const complete = async (
   key: string,
   uploadId: string,
   parts: UploadPart[],
+  token: string
 ): Promise<{ location: string; bucket: string; key: string; etag: string }> => {
-  return fetchJson(`${SERVER_URL}/api/upload/complete`, {
+  return fetchJson(`${SERVER_URL || 'http://localhost:3002'}/api/upload/complete`, {
     method: 'POST',
     body: JSON.stringify({ key, uploadId, parts }),
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 /**
  * API call to abort multipart upload
  */
-const abort = async (key: string, uploadId: string): Promise<void> => {
-  await fetchJson(`${SERVER_URL}/api/upload/abort`, {
+const abort = async (key: string, uploadId: string, token: string): Promise<void> => {
+  await fetchJson(`${SERVER_URL || 'http://localhost:3002'}/api/upload/abort`, {
     method: 'POST',
     body: JSON.stringify({ key, uploadId }),
+    headers: { Authorization: `Bearer ${token}` },
   });
 };
 

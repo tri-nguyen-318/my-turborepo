@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl';
 
 type MessageStatus = 'pending' | 'sent' | 'failed';
 interface ChatMessage {
-  id?: string; // for local tracking
+  id?: string;
   channel: string;
   user: string;
   message: string;
@@ -24,8 +24,9 @@ export default function ChatUI() {
   const t = useTranslations('chat');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [socketReady, setSocketReady] = useState(false);
-  const [channels, setChannels] = useState<string[]>(['default', 'entertainment', 'work']);
-  const [currentChannel, setCurrentChannel] = useState('default');
+  const [mode, setMode] = useState<'users' | 'ai'>('users');
+  const [roomId, setRoomId] = useState<string>('general');
+  const [joined, setJoined] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // For tracking local messages by temp id
   const tempIdRef = useRef(0);
@@ -40,152 +41,163 @@ export default function ChatUI() {
     defaultValues: {
       username: '',
       input: '',
-      newChannel: '',
+      roomId: 'general',
     },
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
+    if (mode !== 'users') return;
     const s = io(BACKEND_URL, { transports: ['websocket'] });
     setSocket(s);
     const onConnect = () => setSocketReady(true);
-    const onDisconnect = () => setSocketReady(false);
+    const onDisconnect = () => {
+      setSocketReady(false);
+      setJoined(false);
+    };
     s.on('connect', onConnect);
     s.on('disconnect', onDisconnect);
-    s.emit('joinChannel', currentChannel);
     s.on('newMessage', (msg: ChatMessage) => {
       setMessages(prev => {
-        // If this is an echo of a local pending message, update its status
         if (msg.user && msg.message) {
           const idx = prev.findIndex(
             m => m.status === 'pending' && m.user === msg.user && m.message === msg.message
           );
           if (idx !== -1) {
-            // Update status to 'sent' and timestamp
             const updated = [...prev];
             updated[idx] = { ...msg, status: 'sent', id: updated[idx].id };
             return updated;
           }
         }
-        // Otherwise, just add as a new message
         return [...prev, { ...msg, status: 'sent' }];
       });
     });
     return () => {
       s.off('connect', onConnect);
       s.off('disconnect', onDisconnect);
+      s.off('newMessage');
       s.disconnect();
     };
-    // eslint-disable-next-line
-  }, []);
+     
+  }, [mode]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
-    if (!socketReady) return;
+  const handleJoinRoom = () => {
+    const rid = getValues('roomId').trim();
+    if (!socketReady || !rid) return;
+    setRoomId(rid);
+    socket?.emit('joinRoom', rid);
+    setJoined(true);
+    setMessages([]);
+  };
+  const handleSend = async () => {
     const { input, username } = getValues();
     if (!input.trim() || !username.trim()) return;
     const tempId = `temp-${tempIdRef.current++}`;
-    const localMsg: ChatMessage = {
+    const baseMsg: ChatMessage = {
       id: tempId,
-      channel: currentChannel,
+      channel: roomId,
       user: username,
       message: input,
       timestamp: Date.now(),
       status: 'pending',
     };
-    setMessages(prev => [...prev, localMsg]);
+    setMessages(prev => [...prev, baseMsg]);
     setValue('input', '');
-    socket?.emit(
-      'sendMessage',
-      {
-        channel: currentChannel,
-        user: username,
-        message: input,
-        timestamp: localMsg.timestamp,
-      },
-      (ack: { success: boolean; error?: string }) => {
-        setMessages(prev => {
-          const idx = prev.findIndex(m => m.id === tempId);
-          if (idx === -1) return prev;
-          const updated = [...prev];
-          if (ack?.success) {
-            updated[idx] = { ...updated[idx], status: 'sent' };
-          } else {
-            updated[idx] = { ...updated[idx], status: 'failed' };
-          }
-          return updated;
+    if (mode === 'users') {
+      if (!socketReady || !joined) return;
+      socket?.emit(
+        'sendMessage',
+        {
+          roomId,
+          user: username,
+          message: input,
+          timestamp: baseMsg.timestamp,
+        },
+        (ack: { success: boolean; error?: string }) => {
+          setMessages(prev => {
+            const idx = prev.findIndex(m => m.id === tempId);
+            if (idx === -1) return prev;
+            const updated = [...prev];
+            if (ack?.success) {
+              updated[idx] = { ...updated[idx], status: 'sent' };
+            } else {
+              updated[idx] = { ...updated[idx], status: 'failed' };
+            }
+            return updated;
+          });
+        }
+      );
+    } else {
+      try {
+        const res = await fetch(`${BACKEND_URL}/chat/ai`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: username, message: input }),
         });
+        const data = await res.json();
+        setMessages(prev => [
+          ...prev,
+          {
+            channel: roomId,
+            user: 'AI',
+            message: data?.reply || 'AI is not configured',
+            timestamp: Date.now(),
+            status: 'sent',
+          },
+        ]);
+      } catch {
+        setMessages(prev => [
+          ...prev,
+          {
+            channel: roomId,
+            user: 'AI',
+            message: 'Error getting AI response',
+            timestamp: Date.now(),
+            status: 'failed',
+          },
+        ]);
       }
-    );
+    }
   };
 
-  const handleCreateChannel = () => {
-    const { newChannel } = getValues();
-    if (!newChannel.trim() || channels.includes(newChannel)) return;
-    socket?.emit('createChannel', newChannel, (res: any) => {
-      if (res?.event === 'channelCreated') {
-        setChannels(prev => [...prev, newChannel]);
-        setValue('newChannel', '');
-      }
-    });
-  };
+  const ModeToggle = () => (
+    <div className="flex gap-2 mb-2">
+      <Button variant={mode === 'users' ? 'default' : 'outline'} onClick={() => setMode('users')}>
+        Chat with Users
+      </Button>
+      <Button variant={mode === 'ai' ? 'default' : 'outline'} onClick={() => setMode('ai')}>
+        Chat AI
+      </Button>
+    </div>
+  );
 
-  const handleJoinChannel = (channel: string) => {
-    if (channel === currentChannel) return;
-    socket?.emit('leaveChannel', currentChannel);
-    setCurrentChannel(channel);
-    setMessages([]);
-    socket?.emit('joinChannel', channel);
-  };
+  // removed legacy channel handling
 
   return (
     <form className="flex rounded-lg overflow-hidden bg-background flex-1 shadow-lg" onSubmit={e => e.preventDefault()}>
-      <Card className="w-60 min-w-[200px] flex flex-col bg-card border-0 shadow-none">
-        <CardHeader className="bg-card/90">
-          <CardTitle>{t('channels')}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col gap-2">
-          <ScrollArea className="flex-1">
-            <ul className="space-y-1">
-              {channels.map(ch => (
-                <li key={ch}>
-                  <Button
-                    variant={ch === currentChannel ? 'default' : 'ghost'}
-                    className="w-full justify-start"
-                    onClick={() => handleJoinChannel(ch)}
-                  >
-                    #{ch}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </ScrollArea>
-          <div className="flex gap-2 mt-2">
-            <Input
-              placeholder={t('newChannel')}
-              {...register('newChannel')}
-              className="flex-1"
-            />
-            <Button onClick={handleCreateChannel} variant="secondary">
-              {t('create')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
       <Card className="flex-1 flex flex-col bg-card border-0 shadow-none">
         <CardHeader className="flex-row items-center gap-4 bg-card/90">
-          <Input
-            placeholder={t('yourName')}
-            {...register('username')}
-            className="max-w-xs"
-          />
-          <span className="text-muted-foreground">
-            {t('channel')}: <b>#{currentChannel}</b>
-          </span>
+          <ModeToggle />
+          <div className="flex items-center gap-2">
+            <Input placeholder={t('yourName')} {...register('username')} className="max-w-xs" />
+            {mode === 'users' && (
+              <>
+                <Input
+                  placeholder="Room ID"
+                  {...register('roomId')}
+                  className="max-w-xs"
+                  onKeyDown={e => e.key === 'Enter' && handleJoinRoom()}
+                />
+                <Button onClick={handleJoinRoom} disabled={!socketReady}>
+                  {joined ? 'Joined' : 'Join'}
+                </Button>
+              </>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
           <ScrollArea className="flex-1 p-4">
@@ -213,9 +225,14 @@ export default function ChatUI() {
               {...register('input')}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
               className="flex-1"
-              disabled={!socketReady}
+              disabled={mode === 'users' ? !socketReady || !joined : false}
             />
-            <Button onClick={handleSend} disabled={!socketReady}>{t('send')}</Button>
+            <Button
+              onClick={handleSend}
+              disabled={mode === 'users' ? !socketReady || !joined : false}
+            >
+              {t('send')}
+            </Button>
           </div>
         </CardContent>
       </Card>

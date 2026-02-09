@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/apps/info-service",
+    "module": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2021",
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["test/**/*.ts", "dist/**/*.ts"]
+}

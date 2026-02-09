@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '@repo/database';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
@@ -29,7 +29,18 @@ export class AuthService {
       },
     });
 
-    return this.generateToken(user.id, user.email, user.name, user.avatarUrl);
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+    
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl
+      }
+    };
   }
 
   async signin(dto: SigninDto) {
@@ -45,11 +56,22 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.generateToken(user.id, user.email, user.name, user.avatarUrl);
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl
+      }
+    };
   }
 
   async validateGoogleUser(details: { email: string; firstName: string; lastName: string; picture: string; googleId: string }) {
-    const user = await this.prisma.user.findUnique({
+    let user = await this.prisma.user.findUnique({
       where: { email: details.email },
     });
 
@@ -68,36 +90,126 @@ export class AuthService {
             updateData.avatarUrl = details.picture;
             updatedAvatar = details.picture;
           }
-          await this.prisma.user.update({
+          user = await this.prisma.user.update({
               where: { id: user.id },
               data: updateData
           });
       }
-      return this.generateToken(user.id, user.email, updatedName, updatedAvatar);
+    } else {
+      user = await this.prisma.user.create({
+        data: {
+          email: details.email,
+          name: `${details.firstName} ${details.lastName}`,
+          googleId: details.googleId,
+          avatarUrl: details.picture
+        },
+      });
     }
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        email: details.email,
-        name: `${details.firstName} ${details.lastName}`,
-        googleId: details.googleId,
-        avatarUrl: details.picture
-      },
-    });
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
 
-    return this.generateToken(newUser.id, newUser.email, newUser.name, newUser.avatarUrl);
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl
+      }
+    };
   }
 
-  private generateToken(userId: number, email: string, name: string | null, avatarUrl?: string | null) {
-    const payload = { sub: userId, email };
+  async getProfile(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
     return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-          id: userId,
-          email: email,
-          name: name,
-          avatarUrl: avatarUrl
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl
+    };
+  }
+
+  async updateProfile(userId: number, data: { name?: string; avatarUrl?: string }) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...data
       }
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl
+    };
+  }
+
+  async logout(userId: number) {
+    return this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        hashedRefreshToken: {
+          not: null,
+        },
+      },
+      data: {
+        hashedRefreshToken: null,
+      },
+    });
+  }
+
+  async refreshTokens(userId: number, refreshToken: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user || !user.hashedRefreshToken)
+      throw new ForbiddenException('Access Denied');
+
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.hashedRefreshToken,
+    );
+    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+    return tokens;
+  }
+
+  async updateRefreshToken(userId: number, refreshToken: string) {
+    const hash = await bcrypt.hash(refreshToken, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        hashedRefreshToken: hash,
+      },
+    });
+  }
+
+  async generateTokens(userId: number, email: string) {
+    const [at, rt] = await Promise.all([
+      this.jwtService.signAsync(
+        { sub: userId, email },
+        { expiresIn: '15m' },
+      ),
+      this.jwtService.signAsync(
+        { sub: userId, email },
+        { expiresIn: '7d' },
+      ),
+    ]);
+
+    return {
+      access_token: at,
+      refresh_token: rt,
     };
   }
 }

@@ -1,18 +1,32 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import cookieParser from 'cookie-parser';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
-  
+
+  const httpAdapter = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+
+  app.use(cookieParser());
+
   app.enableCors({
-    origin: configService.get('FRONTEND_URL') || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   });
 
-  const port = configService.get('PORT') || 3003;
-  await app.listen(port);
-  console.log(`Gateway (Backend) running on port ${port}`);
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.TCP,
+    options: {
+      host: '0.0.0.0',
+      port: 3003,
+    },
+  });
+
+  await app.startAllMicroservices();
+  await app.listen(3003);
+  console.log('API Gateway running on port 3003');
 }
 bootstrap();

@@ -3,8 +3,11 @@
  */
 export const fetchJson = async <T>(url: string, options: RequestInit): Promise<T> => {
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options,
+    headers: { 
+      'Content-Type': 'application/json', 
+      ...options.headers 
+    },
   });
 
   if (!response.ok) {
