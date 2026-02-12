@@ -1,7 +1,10 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { ChatAiService } from './chat-ai.service';
 
 @Controller('chat')
 export class ChatController {
+  constructor(private readonly ai: ChatAiService) {}
+
   @Post('ai')
   async chatWithAi(
     @Body()
@@ -11,8 +14,11 @@ export class ChatController {
     },
   ) {
     const { user, message } = body;
-    return {
-      reply: `Hi ${user || 'friend'}, you said: "${message}". AI backend is not wired yet, this is a placeholder.`,
-    };
+    try {
+      const reply = await this.ai.reply(user, message);
+      return { reply };
+    } catch {
+      throw new HttpException('Failed to generate AI response', HttpStatus.BAD_GATEWAY);
+    }
   }
 }

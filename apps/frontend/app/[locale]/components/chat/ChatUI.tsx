@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslations } from 'next-intl';
+import { useChatStore } from '@/lib/store/chatStore';
 
 
 type MessageStatus = 'pending' | 'sent' | 'failed';
@@ -24,9 +25,13 @@ export default function ChatUI() {
   const t = useTranslations('chat');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [socketReady, setSocketReady] = useState(false);
-  const [mode, setMode] = useState<'users' | 'ai'>('users');
-  const [roomId, setRoomId] = useState<string>('general');
-  const [joined, setJoined] = useState(false);
+  const mode = useChatStore(s => s.mode);
+  const setMode = useChatStore(s => s.setMode);
+  const roomId = useChatStore(s => s.roomId);
+  const setRoomId = useChatStore(s => s.setRoomId);
+  const joined = useChatStore(s => s.joined);
+  const setJoined = useChatStore(s => s.setJoined);
+  const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // For tracking local messages by temp id
   const tempIdRef = useRef(0);
@@ -45,9 +50,14 @@ export default function ChatUI() {
     },
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sendingRef = useRef(false);
 
   useEffect(() => {
-    if (mode !== 'users') return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || mode !== 'users') return;
     const s = io(BACKEND_URL, { transports: ['websocket'] });
     setSocket(s);
     const onConnect = () => setSocketReady(true);
@@ -79,7 +89,7 @@ export default function ChatUI() {
       s.disconnect();
     };
      
-  }, [mode]);
+  }, [mode, mounted, setJoined]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -94,8 +104,10 @@ export default function ChatUI() {
     setMessages([]);
   };
   const handleSend = async () => {
+    if (sendingRef.current) return;
     const { input, username } = getValues();
     if (!input.trim() || !username.trim()) return;
+    sendingRef.current = true;
     const tempId = `temp-${tempIdRef.current++}`;
     const baseMsg: ChatMessage = {
       id: tempId,
@@ -129,6 +141,7 @@ export default function ChatUI() {
             }
             return updated;
           });
+          sendingRef.current = false;
         }
       );
     } else {
@@ -138,28 +151,36 @@ export default function ChatUI() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user: username, message: input }),
         });
+        if (!res.ok) {
+          throw new Error('Bad response');
+        }
         const data = await res.json();
-        setMessages(prev => [
-          ...prev,
-          {
+        setMessages(prev => {
+          const idx = prev.findIndex(m => m.id === tempId);
+          const updated = [...prev];
+          if (idx !== -1) {
+            updated[idx] = { ...updated[idx], status: 'sent' };
+          }
+          updated.push({
             channel: roomId,
             user: 'AI',
             message: data?.reply || 'AI is not configured',
             timestamp: Date.now(),
             status: 'sent',
-          },
-        ]);
+          });
+          return updated;
+        });
       } catch {
-        setMessages(prev => [
-          ...prev,
-          {
-            channel: roomId,
-            user: 'AI',
-            message: 'Error getting AI response',
-            timestamp: Date.now(),
-            status: 'failed',
-          },
-        ]);
+        setMessages(prev => {
+          const idx = prev.findIndex(m => m.id === tempId);
+          const updated = [...prev];
+          if (idx !== -1) {
+            updated[idx] = { ...updated[idx], status: 'failed' };
+          }
+          return updated;
+        });
+      } finally {
+        sendingRef.current = false;
       }
     }
   };
@@ -180,25 +201,33 @@ export default function ChatUI() {
   return (
     <form className="flex rounded-lg overflow-hidden bg-background flex-1 shadow-lg" onSubmit={e => e.preventDefault()}>
       <Card className="flex-1 flex flex-col bg-card border-0 shadow-none">
-        <CardHeader className="flex-row items-center gap-4 bg-card/90">
-          <ModeToggle />
-          <div className="flex items-center gap-2">
-            <Input placeholder={t('yourName')} {...register('username')} className="max-w-xs" />
-            {mode === 'users' && (
-              <>
-                <Input
-                  placeholder="Room ID"
-                  {...register('roomId')}
-                  className="max-w-xs"
-                  onKeyDown={e => e.key === 'Enter' && handleJoinRoom()}
-                />
-                <Button onClick={handleJoinRoom} disabled={!socketReady}>
-                  {joined ? 'Joined' : 'Join'}
-                </Button>
-              </>
-            )}
-          </div>
-        </CardHeader>
+        {mounted ? (
+          <CardHeader className="flex-row items-center gap-4 bg-card/90">
+            <ModeToggle />
+            <div className="flex items-center gap-2">
+              <Input placeholder={t('yourName')} {...register('username')} className="max-w-xs" />
+              {mode === 'users' && (
+                <>
+                  <Input
+                    placeholder="Room ID"
+                    {...register('roomId')}
+                    className="max-w-xs"
+                    onKeyDown={e => e.key === 'Enter' && handleJoinRoom()}
+                  />
+                  <Button onClick={handleJoinRoom} disabled={!socketReady}>
+                    {joined ? 'Joined' : 'Join'}
+                  </Button>
+                </>
+              )}
+            </div>
+          </CardHeader>
+        ) : (
+          <CardHeader className="flex-row items-center gap-4 bg-card/90">
+            <div className="h-9 w-24 bg-muted rounded animate-pulse" />
+            <div className="h-9 w-40 bg-muted rounded animate-pulse" />
+            <div className="h-9 w-28 bg-muted rounded animate-pulse" />
+          </CardHeader>
+        )}
         <CardContent className="flex-1 flex flex-col p-0">
           <ScrollArea className="flex-1 p-4">
             {messages.map((msg, idx) => (
@@ -219,21 +248,28 @@ export default function ChatUI() {
             ))}
             <div ref={messagesEndRef} />
           </ScrollArea>
-          <div className="flex gap-2 px-4">
-            <Input
-              placeholder={t('typeMessage')}
-              {...register('input')}
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
-              className="flex-1"
-              disabled={mode === 'users' ? !socketReady || !joined : false}
-            />
-            <Button
-              onClick={handleSend}
-              disabled={mode === 'users' ? !socketReady || !joined : false}
-            >
-              {t('send')}
-            </Button>
-          </div>
+          {mounted ? (
+            <div className="flex gap-2 px-4">
+              <Input
+                placeholder={t('typeMessage')}
+                {...register('input')}
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                className="flex-1"
+                disabled={mode === 'users' ? !socketReady || !joined : false}
+              />
+              <Button
+                onClick={handleSend}
+                disabled={mode === 'users' ? !socketReady || !joined : false}
+              >
+                {t('send')}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-2 px-4">
+              <div className="h-9 w-full bg-muted rounded animate-pulse" />
+              <div className="h-9 w-20 bg-muted rounded animate-pulse" />
+            </div>
+          )}
         </CardContent>
       </Card>
     </form>
