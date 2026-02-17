@@ -1,0 +1,26 @@
+{
+  "name": "aws-lab",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "s3": "ts-node src/01-s3/index.ts",
+    "dynamodb": "ts-node src/02-dynamodb/index.ts",
+    "sqs": "ts-node src/03-sqs/index.ts",
+    "sns": "ts-node src/04-sns/index.ts",
+    "lambda": "ts-node src/05-lambda/index.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.983.0",
+    "@aws-sdk/s3-request-presigner": "^3.983.0",
+    "@aws-sdk/client-dynamodb": "^3.983.0",
+    "@aws-sdk/lib-dynamodb": "^3.983.0",
+    "@aws-sdk/client-sqs": "^3.983.0",
+    "@aws-sdk/client-sns": "^3.983.0",
+    "@aws-sdk/client-lambda": "^3.983.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3"
+  }
+}
