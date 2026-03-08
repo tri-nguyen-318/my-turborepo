@@ -1,6 +1,6 @@
 # ---- Stage 1: Install dependencies ----
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY package.json yarn.lock ./
@@ -17,7 +17,7 @@ RUN yarn install --frozen-lockfile
 
 # ---- Stage 2: Build ----
 FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -29,7 +29,7 @@ RUN yarn workspace backend build
 
 # ---- Stage 3: Runner ----
 FROM node:20-alpine AS runner
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 ENV NODE_ENV=production
