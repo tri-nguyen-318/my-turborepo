@@ -3,7 +3,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig = {
-  // any other Next.js config
+  output: 'standalone' as const,
 };
 
 export default withNextIntl(nextConfig);
