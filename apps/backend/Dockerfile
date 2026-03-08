@@ -4,8 +4,13 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json yarn.lock ./
+# Copy all workspace package.json files so yarn can resolve the full workspace
 COPY apps/backend/package.json ./apps/backend/
+COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/aws-lab/package.json ./apps/aws-lab/
 COPY packages/database/package.json ./packages/database/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN yarn install --frozen-lockfile
@@ -19,6 +24,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 RUN cd packages/database && npx prisma generate
+RUN yarn workspace @repo/database build
 RUN yarn workspace backend build
 
 # ---- Stage 3: Runner ----

@@ -21,6 +21,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 RUN cd packages/database && npx prisma generate
+RUN yarn workspace @repo/database build
 
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn workspace frontend build
