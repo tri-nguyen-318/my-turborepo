@@ -8,7 +8,7 @@ import { fetchJson } from '../fetchJson';
 const initiate = async (
   filename: string,
   contentType: string,
-  token: string
+  token?: string,
 ): Promise<{ uploadId: string; key: string }> => {
   return fetchJson(`${SERVER_URL || 'http://localhost:3002'}/api/upload/initiate`, {
     method: 'POST',
@@ -24,7 +24,7 @@ const getSignedUrl = async (
   key: string,
   uploadId: string,
   partNumber: number,
-  token: string
+  token: string,
 ): Promise<{ signedUrl: string }> => {
   return fetchJson(`${SERVER_URL || 'http://localhost:3002'}/api/upload/url`, {
     method: 'POST',
@@ -69,7 +69,7 @@ const complete = async (
   key: string,
   uploadId: string,
   parts: UploadPart[],
-  token: string
+  token: string,
 ): Promise<{ location: string; bucket: string; key: string; etag: string }> => {
   return fetchJson(`${SERVER_URL || 'http://localhost:3002'}/api/upload/complete`, {
     method: 'POST',

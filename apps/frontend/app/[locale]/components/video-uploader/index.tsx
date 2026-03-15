@@ -20,8 +20,10 @@ import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from './cropImage';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { useAuth } from '../../providers/AuthProvider';
 
 const VideoUploader = () => {
+  const { accessToken } = useAuth();
   const t = useTranslations('videoUploader');
   const tProgress = useTranslations('videoUploader.progress');
   const [progress, setProgress] = useState(0);
@@ -44,6 +46,7 @@ const VideoUploader = () => {
 
   const { handleUpload } = useMultipartUpload({
     file,
+    token: accessToken ?? '',
     setStatus,
     setProgress,
     setUploadDetails,

@@ -27,7 +27,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import { DatePickerDemo as DatePicker } from '@/components/ui/date-picker';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface Invoice {
   id: number;
@@ -48,7 +48,15 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
   const [editing, setEditing] = useState<Invoice | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { register, handleSubmit, setValue, reset, watch, control, formState: { errors, isSubmitting } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm({
     defaultValues: { search: '', customer: '', amount: '', date: '', status: 'Paid' },
   });
   const search = watch('search');
@@ -123,11 +131,7 @@ export default function InvoicesPage() {
       <div className="w-full max-w-4xl bg-card rounded-xl shadow-xl p-8 flex-1">
         <h1 className="text-2xl font-bold mb-4">{t('title')}</h1>
         <form className="flex flex-col sm:flex-row gap-4 mb-4" onSubmit={e => e.preventDefault()}>
-          <Input
-            placeholder={t('searchPlaceholder')}
-            {...register('search')}
-            className="flex-1"
-          />
+          <Input placeholder={t('searchPlaceholder')} {...register('search')} className="flex-1" />
           <Button type="button" onClick={handleExport} variant="secondary">
             {t('exportCsv')}
           </Button>
@@ -188,10 +192,7 @@ export default function InvoicesPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mb-4">
               <div className="flex flex-col gap-1">
                 <label className="font-medium">{t('customer')}</label>
-                <Input
-                  placeholder={t('customer')}
-                  {...register('customer', { required: true })}
-                />
+                <Input placeholder={t('customer')} {...register('customer', { required: true })} />
                 {errors.customer && <span className="text-red-500 text-xs">{t('required')}</span>}
               </div>
               <div className="flex flex-col gap-1">
@@ -211,7 +212,7 @@ export default function InvoicesPage() {
                   render={({ field }) => (
                     <DatePicker
                       value={field.value ? new Date(field.value) : undefined}
-                      onChange={date => field.onChange(date ? date.toISOString().slice(0, 10) : "")}
+                      onChange={date => field.onChange(date ? date.toISOString().slice(0, 10) : '')}
                       placeholder={t('date') + ' (YYYY-MM-DD)'}
                     />
                   )}
@@ -220,10 +221,7 @@ export default function InvoicesPage() {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="font-medium">{t('status')}</label>
-                <Select
-                  value={watch('status')}
-                  onValueChange={val => setValue('status', val)}
-                >
+                <Select value={watch('status')} onValueChange={val => setValue('status', val)}>
                   <SelectTrigger className="min-w-[120px]">
                     <SelectValue placeholder={t('status')} />
                   </SelectTrigger>
@@ -234,7 +232,9 @@ export default function InvoicesPage() {
                 </Select>
               </div>
               <DialogFooter className="mt-2">
-                <Button type="submit" disabled={isSubmitting}>{editing ? t('save') : t('add')}</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {editing ? t('save') : t('add')}
+                </Button>
                 <DialogClose asChild>
                   <Button variant="ghost" type="button" onClick={() => setEditing(null)}>
                     {t('cancel')}

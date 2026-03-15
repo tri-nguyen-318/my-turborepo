@@ -9,9 +9,10 @@ import { uploadApi } from '@/lib/api';
 export const initiateMultipartUpload = async (
   filename: string,
   contentType: string,
+  token: string,
 ): Promise<{ uploadId: string; key: string }> => {
   console.log('📤 [STEP 2] Initiating multipart upload...');
-  const initRes = await withRetry(() => uploadApi.initiate(filename, contentType));
+  const initRes = await withRetry(() => uploadApi.initiate(filename, contentType, token));
   console.log('✅ [STEP 3] Upload initiated. UploadId:', initRes.uploadId, 'Key:', initRes.key);
   return initRes;
 };
@@ -24,11 +25,12 @@ export const getSignedUploadUrl = async (
   uploadId: string,
   partNumber: number,
   totalParts: number,
+  token: string,
 ): Promise<string> => {
   console.log(
     `🔗 [STEP 5.${partNumber}] Getting signed URL for part ${partNumber}/${totalParts}...`,
   );
-  const urlRes = await withRetry(() => uploadApi.getSignedUrl(fileKey, uploadId, partNumber));
+  const urlRes = await withRetry(() => uploadApi.getSignedUrl(fileKey, uploadId, partNumber, token));
   console.log(`✅ Got signed URL for part ${partNumber}`);
   return urlRes.signedUrl;
 };
@@ -57,12 +59,13 @@ export const uploadSinglePart = async (
   uploadId: string,
   partNumber: number,
   totalParts: number,
+  token: string,
 ): Promise<UploadPart> => {
   const start = (partNumber - 1) * CHUNK_SIZE;
   const end = Math.min(start + CHUNK_SIZE, file.size);
   const chunk = file.slice(start, end);
 
-  const signedUrl = await getSignedUploadUrl(fileKey, uploadId, partNumber, totalParts);
+  const signedUrl = await getSignedUploadUrl(fileKey, uploadId, partNumber, totalParts, token);
   const eTag = await uploadChunkToS3(signedUrl, chunk, partNumber, file.type);
 
   return { PartNumber: partNumber, ETag: eTag };
@@ -75,11 +78,12 @@ export const completeMultipartUpload = async (
   fileKey: string,
   uploadId: string,
   parts: UploadPart[],
+  token: string,
 ): Promise<{ location: string }> => {
   console.log('🏁 [STEP 8] Completing multipart upload...');
   console.log('Parts to complete:', parts);
 
-  const completeRes = await withRetry(() => uploadApi.complete(fileKey, uploadId, parts));
+  const completeRes = await withRetry(() => uploadApi.complete(fileKey, uploadId, parts, token));
   console.log('🎉 [STEP 9] Upload completed! Location:', completeRes.location);
   return completeRes;
 };
@@ -87,10 +91,10 @@ export const completeMultipartUpload = async (
 /**
  * Aborts a multipart upload for cleanup
  */
-export const abortMultipartUpload = async (fileKey: string, uploadId: string): Promise<void> => {
+export const abortMultipartUpload = async (fileKey: string, uploadId: string, token: string): Promise<void> => {
   console.log('🗑️ Attempting to abort incomplete upload...');
   try {
-    await uploadApi.abort(fileKey, uploadId);
+    await uploadApi.abort(fileKey, uploadId, token);
     console.log('✅ Upload aborted successfully');
   } catch (error) {
     console.error('❌ Error while aborting upload:', error);

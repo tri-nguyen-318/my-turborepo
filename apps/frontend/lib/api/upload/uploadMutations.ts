@@ -7,8 +7,15 @@ import type { UploadPart } from '@/app/[locale]/components/video-uploader/types'
  */
 export const useInitiateUpload = () => {
   return useMutation({
-    mutationFn: ({ filename, contentType }: { filename: string; contentType: string }) =>
-      uploadApi.initiate(filename, contentType),
+    mutationFn: ({
+      filename,
+      contentType,
+      token,
+    }: {
+      filename: string;
+      contentType: string;
+      token: string;
+    }) => uploadApi.initiate(filename, contentType, token),
   });
 };
 
@@ -21,11 +28,13 @@ export const useGetSignedUrl = () => {
       key,
       uploadId,
       partNumber,
+      token,
     }: {
       key: string;
       uploadId: string;
       partNumber: number;
-    }) => uploadApi.getSignedUrl(key, uploadId, partNumber),
+      token: string;
+    }) => uploadApi.getSignedUrl(key, uploadId, partNumber, token),
   });
 };
 
@@ -55,11 +64,13 @@ export const useCompleteUpload = () => {
       key,
       uploadId,
       parts,
+      token,
     }: {
       key: string;
       uploadId: string;
       parts: UploadPart[];
-    }) => uploadApi.complete(key, uploadId, parts),
+      token: string;
+    }) => uploadApi.complete(key, uploadId, parts, token),
   });
 };
 
@@ -68,7 +79,7 @@ export const useCompleteUpload = () => {
  */
 export const useAbortUpload = () => {
   return useMutation({
-    mutationFn: ({ key, uploadId }: { key: string; uploadId: string }) =>
-      uploadApi.abort(key, uploadId),
+    mutationFn: ({ key, uploadId, token }: { key: string; uploadId: string; token: string }) =>
+      uploadApi.abort(key, uploadId, token),
   });
 };

@@ -11,6 +11,7 @@ import {
 
 interface UseMultipartUploadParams {
   file: File | null;
+  token: string;
   setStatus: (status: UploadStatus) => void;
   setProgress: (progress: number) => void;
   setUploadDetails: React.Dispatch<React.SetStateAction<UploadDetails>>;
@@ -18,6 +19,7 @@ interface UseMultipartUploadParams {
 
 export const useMultipartUpload = ({
   file,
+  token,
   setStatus,
   setProgress,
   setUploadDetails,
@@ -35,7 +37,7 @@ export const useMultipartUpload = ({
 
     try {
       // Initiate multipart upload
-      const initRes = await initiateMultipartUpload(file.name, file.type);
+      const initRes = await initiateMultipartUpload(file.name, file.type, token);
       uploadId = initRes.uploadId;
       fileKey = initRes.key;
       setUploadDetails(prev => ({ ...prev, uploadId, key: fileKey, totalParts }));
@@ -54,7 +56,7 @@ export const useMultipartUpload = ({
           const partNumber = i + 1;
 
           const uploadPartPromise = async () => {
-            const part = await uploadSinglePart(file, fileKey!, uploadId!, partNumber, totalParts);
+            const part = await uploadSinglePart(file, fileKey!, uploadId!, partNumber, totalParts, token);
             uploadedParts.push(part);
             partsCompleted++;
             setUploadDetails(prev => ({ ...prev, partsUploaded: partsCompleted }));
@@ -83,7 +85,7 @@ export const useMultipartUpload = ({
 
       // Sort parts and complete upload
       uploadedParts.sort((a, b) => a.PartNumber - b.PartNumber);
-      await completeMultipartUpload(fileKey, uploadId, uploadedParts);
+      await completeMultipartUpload(fileKey, uploadId, uploadedParts, token);
       setStatus(UploadStatus.COMPLETE);
     } catch (error) {
       console.error('❌ Upload process failed:', error);
@@ -91,10 +93,10 @@ export const useMultipartUpload = ({
 
       // Abort upload for cleanup
       if (uploadId && fileKey) {
-        await abortMultipartUpload(fileKey, uploadId);
+        await abortMultipartUpload(fileKey, uploadId, token);
       }
     }
-  }, [file, setStatus, setProgress, setUploadDetails]);
+  }, [file, token, setStatus, setProgress, setUploadDetails]);
 
   return { handleUpload };
 };
