@@ -16,7 +16,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(3003);
-  console.log('Backend running on port 3003');
+  await app.listen(3001);
+  console.log('Backend running on port 3001');
 }
 bootstrap();

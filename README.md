@@ -4,23 +4,23 @@ A full-stack monorepo built with Turborepo, featuring a Next.js frontend and Nes
 
 ## Apps
 
-| App | Description |
-|-----|-------------|
-| `apps/frontend` | Next.js 16 app — upload UI, chat, auth, leaderboard, i18n (EN/VI) |
-| `apps/backend` | NestJS API — auth, upload, chat gateway, profile, Prisma ORM |
-| `apps/aws-lab` | Standalone AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack) |
+| App             | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| `apps/frontend` | Next.js 16 app — upload UI, chat, auth, leaderboard, i18n (EN/VI)           |
+| `apps/backend`  | NestJS API — auth, upload, chat gateway, profile, Prisma ORM                |
+| `apps/aws-lab`  | Standalone AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack) |
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 16, React 19, TailwindCSS 4, Radix UI, React Query |
-| Backend | NestJS 10, TypeScript, Prisma 7 |
-| Database | PostgreSQL (Prisma), MongoDB (Mongoose) |
-| Storage | MinIO (local) / AWS S3 (production) |
-| Real-time | Socket.IO 4 |
-| Auth | JWT, Google OAuth 2.0 |
-| Build | Turborepo 2, pnpm 10 |
+| Layer     | Technology                                                 |
+| --------- | ---------------------------------------------------------- |
+| Frontend  | Next.js 16, React 19, TailwindCSS 4, Radix UI, React Query |
+| Backend   | NestJS 10, TypeScript, Prisma 7                            |
+| Database  | PostgreSQL (Prisma), MongoDB (Mongoose)                    |
+| Storage   | MinIO (local) / AWS S3 (production)                        |
+| Real-time | Socket.IO 4                                                |
+| Auth      | JWT, Google OAuth 2.0                                      |
+| Build     | Turborepo 2, pnpm 10                                       |
 
 ## Prerequisites
 
@@ -44,11 +44,11 @@ docker-compose up -d
 
 This starts PostgreSQL, MongoDB, Redis, MinIO, RabbitMQ, and LocalStack.
 
-| Service | URL |
-|---------|-----|
-| MinIO console | http://localhost:9002 |
+| Service          | URL                    |
+| ---------------- | ---------------------- |
+| MinIO console    | http://localhost:9002  |
 | RabbitMQ console | http://localhost:15673 |
-| LocalStack | http://localhost:4566 |
+| LocalStack       | http://localhost:4566  |
 
 ### 3. Set up environment variables
 
@@ -56,7 +56,7 @@ This starts PostgreSQL, MongoDB, Redis, MinIO, RabbitMQ, and LocalStack.
 
 ```env
 NODE_ENV=development
-PORT=3003
+PORT=3001
 DATABASE_URL=postgres://user:password@localhost:5434/mydatabase
 FRONTEND_URL=http://localhost:3000
 JWT_SECRET=your-jwt-secret
@@ -77,7 +77,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 **Frontend** — create `apps/frontend/.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3003
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ### 4. Run database migrations
@@ -94,10 +94,10 @@ pnpm db:push
 pnpm dev
 ```
 
-| App | URL |
-|-----|-----|
+| App      | URL                   |
+| -------- | --------------------- |
 | Frontend | http://localhost:3000 |
-| Backend | http://localhost:3003 |
+| Backend  | http://localhost:3001 |
 
 ## Available Scripts
 
@@ -130,10 +130,10 @@ Frontend → POST /upload/complete   → Backend finalises the multipart upload
 
 ## Deployment
 
-| App | Platform | Notes |
-|-----|----------|-------|
-| `frontend` | Vercel | Connect repo, set root to `apps/frontend` |
-| `backend` | Render | Docker deploy, Dockerfile at `apps/backend/Dockerfile`, build context at repo root |
+| App        | Platform | Notes                                                                              |
+| ---------- | -------- | ---------------------------------------------------------------------------------- |
+| `frontend` | Vercel   | Connect repo, set root to `apps/frontend`                                          |
+| `backend`  | Render   | Docker deploy, Dockerfile at `apps/backend/Dockerfile`, build context at repo root |
 
 **Render environment variables** required at runtime:
 `DATABASE_URL`, `FRONTEND_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and S3/MinIO credentials.

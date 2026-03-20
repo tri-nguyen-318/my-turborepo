@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "build": "nest build",
+    "docker:build": "docker build -t backend -f ../../apps/backend/Dockerfile ../..",
+    "docker:run": "docker run --rm -p 3001:3001 --env-file .env backend",
     "db:generate": "prisma generate --schema=./prisma/schema.prisma",
     "db:push": "prisma db push --schema=./prisma/schema.prisma",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma",
