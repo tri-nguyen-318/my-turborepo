@@ -3,15 +3,22 @@
 import { useTranslations } from 'next-intl';
 import { Github, Mail, MapPin, Phone, Linkedin } from 'lucide-react';
 import { EditableField } from './EditableField';
+import { HeroSkills } from './HeroSkills';
 import type { PersonalInfo } from '@/store/api/apiSlice';
 
 interface HeroInfoProps {
   info: PersonalInfo;
   isAllowedToEdit: boolean;
   onFieldUpdate: (key: keyof PersonalInfo, value: string) => void;
+  onSkillsUpdate: (skills: string[]) => void;
 }
 
-export const HeroInfo = ({ info, isAllowedToEdit, onFieldUpdate }: HeroInfoProps) => {
+export const HeroInfo = ({
+  info,
+  isAllowedToEdit,
+  onFieldUpdate,
+  onSkillsUpdate,
+}: HeroInfoProps) => {
   const t = useTranslations('hero');
   const ro = !isAllowedToEdit;
 
@@ -90,6 +97,12 @@ export const HeroInfo = ({ info, isAllowedToEdit, onFieldUpdate }: HeroInfoProps
           readOnly={ro}
         />
       </div>
+
+      <HeroSkills
+        skills={info.skills}
+        isAllowedToEdit={isAllowedToEdit}
+        onUpdate={onSkillsUpdate}
+      />
     </div>
   );
 };

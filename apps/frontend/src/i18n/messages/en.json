@@ -56,7 +56,10 @@
     "placeholderEmail": "Email",
     "placeholderPhone": "Phone",
     "placeholderGithub": "GitHub URL (e.g. github.com/username)",
-    "placeholderLinkedin": "LinkedIn URL (e.g. linkedin.com/in/username)"
+    "placeholderLinkedin": "LinkedIn URL (e.g. linkedin.com/in/username)",
+    "skillsLabel": "Skills",
+    "addSkill": "Add skill",
+    "skillPlaceholder": "e.g. React"
   },
   "main": {
     "title": "Tri's Portfolio",

@@ -6,11 +6,14 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import("eslint").Linter.Config[]} */
-const config = [
+export default [
   js.configs.recommended,
+  ...tseslint.configs.recommended.map((config) => ({
+    ...config,
+    files: ["src/**/*.ts"],
+  })),
   {
     files: ["src/**/*.ts"],
-    extends: [...tseslint.configs.recommended],
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: __dirname,
@@ -27,5 +30,3 @@ const config = [
     ignores: ["dist/**", "node_modules/**"],
   },
 ];
-
-export default config;

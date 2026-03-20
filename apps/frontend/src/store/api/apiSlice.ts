@@ -24,6 +24,7 @@ export interface PersonalInfo {
   cvUrl?: string;
   avatarUrl?: string;
   career?: CareerItem[];
+  skills?: string[];
 }
 
 export interface SendEmailRequest {

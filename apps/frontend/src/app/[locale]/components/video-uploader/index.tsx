@@ -32,10 +32,7 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-import { useAuth } from '@/hooks/useAuth';
-
 const VideoUploader = () => {
-  const { accessToken } = useAuth();
   const t = useTranslations('videoUploader');
   const tProgress = useTranslations('videoUploader.progress');
   const [progress, setProgress] = useState(0);
@@ -58,7 +55,6 @@ const VideoUploader = () => {
 
   const { handleUpload } = useMultipartUpload({
     file,
-    token: accessToken ?? '',
     setStatus,
     setProgress,
     setUploadDetails,

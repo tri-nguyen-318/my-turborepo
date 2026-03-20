@@ -75,6 +75,14 @@ export const Hero = () => {
     }
   };
 
+  const handleSkillsUpdate = async (skills: string[]) => {
+    try {
+      await updateInfoMutation.mutateAsync({ skills });
+    } catch {
+      toast.error(t('updateFailed', { field: 'skills' }));
+    }
+  };
+
   const handleAvatarUploaded = async (url: string) => {
     await updateProfile({ avatarUrl: url }).unwrap();
     updateUser({ avatarUrl: url });
@@ -125,22 +133,23 @@ export const Hero = () => {
     <section className="relative mb-8 w-full overflow-hidden rounded-xl border border-border/50 bg-linear-to-br from-primary/10 via-background to-secondary/10 py-12 shadow-sm md:py-24 lg:py-32">
       <div className="container px-4 md:px-6">
         <div className="mb-4 flex justify-end gap-2">
-          {fetchedInfo?.cvUrl && (() => {
-            const rawName = decodeURIComponent(fetchedInfo.cvUrl.split('/').pop() ?? 'CV.pdf');
-            const cvFileName = rawName.split('-').slice(2).join('-') || rawName;
-            return (
-              <Button
-                variant="outline"
-                className="gap-2"
-                disabled={isDownloadingCv}
-                onClick={() => handleCvDownload(fetchedInfo.cvUrl!, cvFileName)}
-              >
-                <Download className="h-4 w-4" />
-                {t('downloadCv')}
-                <span className="text-xs text-muted-foreground">{cvFileName}</span>
-              </Button>
-            );
-          })()}
+          {fetchedInfo?.cvUrl &&
+            (() => {
+              const rawName = decodeURIComponent(fetchedInfo.cvUrl.split('/').pop() ?? 'CV.pdf');
+              const cvFileName = rawName.split('-').slice(2).join('-') || rawName;
+              return (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  disabled={isDownloadingCv}
+                  onClick={() => handleCvDownload(fetchedInfo.cvUrl!, cvFileName)}
+                >
+                  <Download className="h-4 w-4" />
+                  {t('downloadCv')}
+                  <span className="text-xs text-muted-foreground">{cvFileName}</span>
+                </Button>
+              );
+            })()}
           {isAllowedToEdit && (
             <>
               <Button
@@ -174,6 +183,7 @@ export const Hero = () => {
             info={info}
             isAllowedToEdit={isAllowedToEdit}
             onFieldUpdate={handleFieldUpdate}
+            onSkillsUpdate={handleSkillsUpdate}
           />
         </div>
       </div>
