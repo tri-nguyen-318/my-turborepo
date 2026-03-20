@@ -3,14 +3,14 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "nest build api",
+    "build": "nest build",
     "db:generate": "prisma generate --schema=./prisma/schema.prisma",
     "db:push": "prisma db push --schema=./prisma/schema.prisma",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "start": "nest start api",
     "dev": "nest start api --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/apps/backend/main",
+    "start:prod": "node dist/main",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit"

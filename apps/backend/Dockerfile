@@ -1,47 +1,42 @@
 # ---- Stage 1: Install dependencies ----
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-# Copy all workspace package.json files so yarn can resolve the full workspace
-COPY apps/backend/package.json ./apps/backend/
-COPY apps/frontend/package.json ./apps/frontend/
-COPY apps/aws-lab/package.json ./apps/aws-lab/
-COPY packages/database/package.json ./packages/database/
-COPY packages/ui/package.json ./packages/ui/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
-COPY packages/typescript-config/package.json ./packages/typescript-config/
+RUN corepack enable && corepack prepare pnpm@10.7.0 --activate
 
-RUN yarn install --frozen-lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/backend/package.json ./apps/backend/
+COPY apps/backend/prisma ./apps/backend/prisma
+
+# --shamefully-hoist puts all packages directly in root node_modules
+# so they are resolvable regardless of working directory in the runner
+RUN pnpm install --frozen-lockfile --shamefully-hoist
 
 # ---- Stage 2: Build ----
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@10.7.0 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN cd packages/database && npx prisma generate
-RUN yarn workspace @repo/database build
-RUN yarn workspace backend build
+RUN pnpm --filter backend exec prisma generate
+RUN pnpm --filter backend run build
 
 # ---- Stage 3: Runner ----
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy only what's needed to run
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
-COPY --from=builder /app/packages/database ./packages/database
+COPY --from=builder /app/apps/backend/dist ./dist
+COPY --from=builder /app/apps/backend/prisma ./prisma
 
-COPY apps/backend/start.sh ./start.sh
-RUN chmod +x ./start.sh
+EXPOSE 3003
 
-EXPOSE 3003 3004 3005
-
-CMD ["./start.sh"]
+CMD ["node", "dist/main"]
