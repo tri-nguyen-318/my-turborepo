@@ -34,5 +34,5 @@ model PersonalInfo {
   website  String?
   cvUrl    String?
   career   Json?
-  skills   Json?
+  skills   String[]
 }

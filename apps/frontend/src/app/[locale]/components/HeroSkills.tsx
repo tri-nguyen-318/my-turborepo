@@ -10,7 +10,8 @@ interface HeroSkillsProps {
   onUpdate: (skills: string[]) => void;
 }
 
-export const HeroSkills = ({ skills = [], isAllowedToEdit, onUpdate }: HeroSkillsProps) => {
+export const HeroSkills = ({ skills, isAllowedToEdit, onUpdate }: HeroSkillsProps) => {
+  const safeSkills = Array.isArray(skills) ? skills : [];
   const t = useTranslations('hero');
   const [adding, setAdding] = useState(false);
   const [input, setInput] = useState('');
@@ -22,18 +23,18 @@ export const HeroSkills = ({ skills = [], isAllowedToEdit, onUpdate }: HeroSkill
 
   const commit = () => {
     const trimmed = input.trim();
-    if (trimmed && !skills.includes(trimmed)) {
-      onUpdate([...skills, trimmed]);
+    if (trimmed && !safeSkills.includes(trimmed)) {
+      onUpdate([...safeSkills, trimmed]);
     }
     setInput('');
     setAdding(false);
   };
 
   const remove = (skill: string) => {
-    onUpdate(skills.filter(s => s !== skill));
+    onUpdate(safeSkills.filter(s => s !== skill));
   };
 
-  if (!isAllowedToEdit && (skills || [])?.length === 0) return null;
+  if (!isAllowedToEdit && safeSkills.length === 0) return null;
 
   return (
     <div className="space-y-2">
@@ -41,7 +42,7 @@ export const HeroSkills = ({ skills = [], isAllowedToEdit, onUpdate }: HeroSkill
         {t('skillsLabel')}
       </p>
       <div className="flex flex-wrap gap-2">
-        {skills.map(skill => (
+        {safeSkills.map(skill => (
           <span
             key={skill}
             className="group/skill flex items-center gap-1 rounded-full border border-border/60 bg-muted/60 px-3 py-1 text-sm font-medium transition-colors hover:bg-muted"

@@ -123,6 +123,11 @@
     "success": "Gửi email thành công!",
     "fail": "Gửi email thất bại."
   },
+  "error": {
+    "title": "Đã xảy ra lỗi",
+    "description": "Có lỗi không mong muốn. Vui lòng thử lại.",
+    "retry": "Thử lại"
+  },
   "invoicesDemo": {
     "title": "Demo hóa đơn",
     "searchPlaceholder": "Tìm kiếm hóa đơn...",

@@ -15,11 +15,12 @@ export class ProfileService {
   }
 
   async getPersonalInfo(userId: number) {
-    return this.prisma.personalInfo.upsert({
+    const info = await this.prisma.personalInfo.upsert({
       where: { userId },
       update: {},
       create: { userId },
     });
+    return info;
   }
 
   async updatePersonalInfo(userEmail: string, userId: number, data: any) {
