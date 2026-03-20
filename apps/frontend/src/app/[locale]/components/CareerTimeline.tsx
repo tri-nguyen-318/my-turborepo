@@ -23,8 +23,8 @@ export const CareerTimeline = () => {
     }) || [];
 
   return (
-    <section className="w-full py-12 container px-4 md:px-6">
-      <div className="flex justify-end mb-8">
+    <section className="container w-full px-4 py-12 md:px-6">
+      <div className="mb-8 flex justify-end">
         <Button variant="outline" onClick={() => handlePrint && handlePrint()} className="gap-2">
           <Download className="h-4 w-4" /> Download CV
         </Button>
@@ -32,11 +32,11 @@ export const CareerTimeline = () => {
 
       {/* Hidden Printable Version */}
       <div style={{ display: 'none' }}>
-        <div ref={componentRef} className="p-12 max-w-[210mm] mx-auto bg-white text-black">
+        <div ref={componentRef} className="mx-auto max-w-[210mm] bg-white p-12 text-black">
           {/* Header */}
           <div className="mb-8 border-b pb-8">
-            <h1 className="text-4xl font-bold mb-2">{info?.name}</h1>
-            <p className="text-xl text-gray-600 mb-4">{info?.role}</p>
+            <h1 className="mb-2 text-4xl font-bold">{info?.name}</h1>
+            <p className="mb-4 text-xl text-gray-600">{info?.role}</p>
             <div className="flex flex-wrap gap-4 text-sm text-gray-500">
               {info?.email && <span>{info.email}</span>}
               {info?.phone && <span>• {info.phone}</span>}
@@ -48,15 +48,15 @@ export const CareerTimeline = () => {
 
           {/* Experience Section */}
           <div>
-            <h2 className="text-2xl font-bold mb-6 uppercase tracking-wider text-gray-800 border-b-2 border-gray-800 inline-block pb-1">
+            <h2 className="mb-6 inline-block border-b-2 border-gray-800 pb-1 text-2xl font-bold tracking-wider text-gray-800 uppercase">
               Experience
             </h2>
             <div className="space-y-6">
               {sortedCareer.map((item, index) => (
                 <div key={index} className="break-inside-avoid">
-                  <div className="flex justify-between items-baseline mb-1">
+                  <div className="mb-1 flex items-baseline justify-between">
                     <h3 className="text-lg font-bold">{item.title}</h3>
-                    <span className="text-sm text-gray-500 font-medium">
+                    <span className="text-sm font-medium text-gray-500">
                       {item.startDate ? dayjs(item.startDate).format('MMM YYYY') : ''}
                       {' - '}
                       {item.current
@@ -66,8 +66,8 @@ export const CareerTimeline = () => {
                           : ''}
                     </span>
                   </div>
-                  <div className="text-md font-semibold text-gray-700 mb-2">{item.company}</div>
-                  <p className="text-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
+                  <div className="text-md mb-2 font-semibold text-gray-700">{item.company}</div>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-600">
                     {item.description}
                   </p>
                 </div>

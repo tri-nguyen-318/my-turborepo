@@ -26,7 +26,7 @@ export const ProgressBar = ({
 
   return (
     <div className="mb-6">
-      <div className="flex justify-between mb-1">
+      <div className="mb-1 flex justify-between">
         <span className="text-base font-medium text-gray-700 dark:text-gray-300">
           {t('uploadStatus')}
         </span>
@@ -36,14 +36,14 @@ export const ProgressBar = ({
           {displayProgress}
         </span>
       </div>
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+      <div className="h-2.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
         <div
           className={`h-2.5 rounded-full transition-all duration-500 ${status === UploadStatus.COMPLETE ? 'bg-green-500 dark:bg-green-600' : status === UploadStatus.ERROR ? 'bg-red-500 dark:bg-red-600' : 'bg-indigo-600 dark:bg-indigo-500'}`}
           style={{ width: `${progress}%` }}
         ></div>
       </div>
       {isUploading && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           {t('uploadingPart', {
             current: uploadDetails.partsUploaded,
             total: uploadDetails.totalParts,

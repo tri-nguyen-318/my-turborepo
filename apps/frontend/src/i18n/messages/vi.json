@@ -34,6 +34,30 @@
       "notAvailable": "N/A"
     }
   },
+  "hero": {
+    "addField": "Thêm {field}...",
+    "defaultName": "Tên của bạn",
+    "defaultRole": "Vị trí của bạn",
+    "defaultBio": "Giới thiệu ngắn về bản thân...",
+    "downloadCv": "Tải CV",
+    "uploadCv": "Tải lên CV",
+    "uploadingCv": "Đang tải lên...",
+    "avatarUpdated": "Cập nhật ảnh đại diện thành công",
+    "avatarUpdateFailed": "Cập nhật ảnh đại diện thất bại",
+    "cvUploaded": "Tải lên CV thành công",
+    "cvUploadFailed": "Tải lên CV thất bại",
+    "cvDownloadFailed": "Tải xuống CV thất bại",
+    "pdfOnly": "Vui lòng chọn tệp PDF",
+    "updateFailed": "Cập nhật {field} thất bại. Vui lòng thử lại.",
+    "placeholderName": "Tên",
+    "placeholderRole": "Vị trí (vd: Kỹ sư phần mềm)",
+    "placeholderBio": "Giới thiệu ngắn về bản thân...",
+    "placeholderLocation": "Địa điểm",
+    "placeholderEmail": "Email",
+    "placeholderPhone": "Số điện thoại",
+    "placeholderGithub": "GitHub URL (vd: github.com/username)",
+    "placeholderLinkedin": "LinkedIn URL (vd: linkedin.com/in/username)"
+  },
   "main": {
     "title": "Portfolio của Tri",
     "welcome": "Chào mừng! Khám phá các demo full-stack bên dưới.",
@@ -49,7 +73,10 @@
     "leaderboardDemoDesc": "Cập nhật xếp hạng trực tiếp dùng Redis và Socket.io.",
     "selectLanguage": "Chọn ngôn ngữ",
     "langEn": "English",
-    "langVi": "Tiếng Việt"
+    "langVi": "Tiếng Việt",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "logout": "Đăng xuất"
   },
   "chat": {
     "channels": "Kênh",

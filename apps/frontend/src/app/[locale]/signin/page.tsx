@@ -5,7 +5,7 @@ import { Link } from '@/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -45,6 +45,7 @@ export default function SigninPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -67,18 +68,18 @@ export default function SigninPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
-      <Card className="w-full max-w-md shadow-lg border-opacity-50">
+    <div className="flex min-h-[calc(100vh-80px)] items-center justify-center p-4">
+      <Card className="border-opacity-50 w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
-          <p className="text-sm text-center text-muted-foreground">
+          <CardTitle className="text-center text-2xl font-bold">Sign In</CardTitle>
+          <p className="text-center text-sm text-muted-foreground">
             Enter your email and password to access your account
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Email
               </label>
               <Input
@@ -91,7 +92,7 @@ export default function SigninPage() {
               )}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Password
               </label>
               <Input
@@ -105,7 +106,7 @@ export default function SigninPage() {
                 </span>
               )}
             </div>
-            {error && <div className="text-sm text-destructive text-center">{error}</div>}
+            {error && <div className="text-center text-sm text-destructive">{error}</div>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
@@ -133,7 +134,7 @@ export default function SigninPage() {
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-primary hover:underline font-medium">
+            <Link href="/signup" className="font-medium text-primary hover:underline">
               Sign up
             </Link>
           </p>

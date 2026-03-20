@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { SignupDto } from '../presentation/dto/signup.dto';
 import { SigninDto } from '../presentation/dto/signin.dto';
+import { ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL } from '../auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -108,8 +109,8 @@ export class AuthService {
 
   private async generateTokens(userId: number, email: string) {
     const [access_token, refresh_token] = await Promise.all([
-      this.jwtService.signAsync({ sub: userId, email }, { expiresIn: '15m' }),
-      this.jwtService.signAsync({ sub: userId, email }, { expiresIn: '7d' }),
+      this.jwtService.signAsync({ sub: userId, email }, { expiresIn: ACCESS_TOKEN_TTL }),
+      this.jwtService.signAsync({ sub: userId, email }, { expiresIn: REFRESH_TOKEN_TTL }),
     ]);
     return { access_token, refresh_token };
   }

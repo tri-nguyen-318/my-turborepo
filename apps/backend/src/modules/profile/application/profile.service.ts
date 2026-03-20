@@ -1,34 +1,25 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { PersonalInfo } from '../domain/schemas/personal-info.schema';
+import { PrismaService } from '../../../shared/database/prisma.service';
 
 const ALLOWED_EMAIL = 'nguyenhuutri31081999nht@gmail.com';
 
 @Injectable()
 export class ProfileService {
-  constructor(@InjectModel(PersonalInfo.name) private readonly infoModel: Model<PersonalInfo>) {}
+  constructor(private readonly prisma: PrismaService) {}
+
+  async getPublicInfo() {
+    const owner = await this.prisma.user.findUnique({ where: { email: ALLOWED_EMAIL } });
+    if (!owner) return {};
+    const info = await this.prisma.personalInfo.findUnique({ where: { userId: owner.id } });
+    return { ...info, avatarUrl: owner.avatarUrl };
+  }
 
   async getPersonalInfo(userId: number) {
-    let result = await this.infoModel.findOne({ userId }).exec();
-
-    if (!result) {
-      result = await new this.infoModel({
-        userId,
-        name: '',
-        role: '',
-        bio: '',
-        location: '',
-        phone: '',
-        email: '',
-        github: '',
-        linkedin: '',
-        website: '',
-        cvUrl: '',
-      }).save();
-    }
-
-    return result;
+    return this.prisma.personalInfo.upsert({
+      where: { userId },
+      update: {},
+      create: { userId },
+    });
   }
 
   async updatePersonalInfo(userEmail: string, userId: number, data: any) {
@@ -36,14 +27,12 @@ export class ProfileService {
       throw new ForbiddenException('You do not have permission to update personal info.');
     }
 
-    const { _id, __v, ...updateData } = data;
+    const { id, userId: _uid, ...updateData } = data;
 
-    if (Object.keys(updateData).length === 0) {
-      return this.infoModel.findOne({ userId }).exec();
-    }
-
-    return this.infoModel
-      .findOneAndUpdate({ userId }, { $set: updateData }, { new: true, upsert: true })
-      .exec();
+    return this.prisma.personalInfo.upsert({
+      where: { userId },
+      update: updateData,
+      create: { userId, ...updateData },
+    });
   }
 }

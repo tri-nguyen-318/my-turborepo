@@ -4,10 +4,10 @@ export const LoadingSpinner = ({ className, size = 48 }: { className?: string; s
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
       <div className="relative">
-        <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+        <div className="absolute inset-0 animate-pulse rounded-full bg-primary/20 blur-xl" />
         <Loader2 className={`animate-spin text-primary ${className}`} size={size} />
       </div>
-      <p className="text-muted-foreground animate-pulse font-medium tracking-wide">Loading...</p>
+      <p className="animate-pulse font-medium tracking-wide text-muted-foreground">Loading...</p>
     </div>
   );
 };

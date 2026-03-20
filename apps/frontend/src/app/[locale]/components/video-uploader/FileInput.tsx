@@ -13,7 +13,7 @@ export const FileInput = ({ onChange, disabled }: FileInputProps) => {
     <div className="mb-6">
       <label
         htmlFor="file-upload"
-        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
       >
         {t('label')}
       </label>

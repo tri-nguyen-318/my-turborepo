@@ -10,9 +10,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!secret) throw new Error('JWT_SECRET is required');
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        (req: any) => req?.cookies?.access_token ?? null,
+      ]),
       ignoreExpiration: false,
       secretOrKey: secret,
+      passReqToCallback: false,
     });
   }
 

@@ -163,7 +163,7 @@ export default function ChatUI() {
   };
 
   const ModeToggle = () => (
-    <div className="flex gap-2 mb-2">
+    <div className="mb-2 flex gap-2">
       <Button variant={mode === 'users' ? 'default' : 'outline'} onClick={() => setMode('users')}>
         Chat with Users
       </Button>
@@ -177,10 +177,10 @@ export default function ChatUI() {
 
   return (
     <form
-      className="flex rounded-lg overflow-hidden bg-background flex-1 shadow-lg"
+      className="flex flex-1 overflow-hidden rounded-lg bg-background shadow-lg"
       onSubmit={e => e.preventDefault()}
     >
-      <Card className="flex-1 flex flex-col bg-card border-0 shadow-none">
+      <Card className="flex flex-1 flex-col border-0 bg-card shadow-none">
         <CardHeader className="flex-row items-center gap-4 bg-card/90">
           <ModeToggle />
           <div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export default function ChatUI() {
             )}
           </div>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col p-0">
+        <CardContent className="flex flex-1 flex-col p-0">
           <ScrollArea className="flex-1 p-4">
             {messages.map((msg, idx) => (
               <div key={msg.id || idx} className="mb-2 flex items-center gap-2">

@@ -32,7 +32,7 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-import { useAuth } from '../../providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 
 const VideoUploader = () => {
   const { accessToken } = useAuth();
@@ -127,11 +127,11 @@ const VideoUploader = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <FileUp className="w-7 h-7" />
+            <FileUp className="h-7 w-7" />
             {t('title')}
           </CardTitle>
           <CardDescription>{t('description')}</CardDescription>
@@ -217,7 +217,7 @@ const VideoUploader = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="relative h-80 bg-muted rounded-md flex items-center justify-center overflow-hidden">
+              <div className="relative flex h-80 items-center justify-center overflow-hidden rounded-md bg-muted">
                 <ReactCrop crop={crop} onChange={(c: Crop) => setCrop(c)} aspect={aspect}>
                   <img
                     src={imagePreview}

@@ -6,6 +6,11 @@ import { ProfileService } from '../application/profile.service';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
+  @Get()
+  getPublicInfo() {
+    return this.profileService.getPublicInfo();
+  }
+
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   getMyInfo(@Request() req) {

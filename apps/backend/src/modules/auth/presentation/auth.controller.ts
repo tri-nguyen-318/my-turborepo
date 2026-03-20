@@ -15,6 +15,7 @@ import type { Response } from 'express';
 import { AuthService } from '../application/auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
+import { ACCESS_TOKEN_COOKIE_MAX_AGE, REFRESH_TOKEN_COOKIE_MAX_AGE } from '../auth.constants';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,7 @@ export class AuthController {
   async signup(@Body() dto: SignupDto, @Res({ passthrough: true }) res: Response) {
     const data = await this.authService.signup(dto);
     this.setRefreshTokenCookie(res, data.refresh_token);
+    this.setAccessTokenCookie(res, data.access_token);
     return { access_token: data.access_token, user: data.user };
   }
 
@@ -34,6 +36,7 @@ export class AuthController {
   async signin(@Body() dto: SigninDto, @Res({ passthrough: true }) res: Response) {
     const data = await this.authService.signin(dto);
     this.setRefreshTokenCookie(res, data.refresh_token);
+    this.setAccessTokenCookie(res, data.access_token);
     return { access_token: data.access_token, user: data.user };
   }
 
@@ -57,6 +60,7 @@ export class AuthController {
   async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
     await this.authService.logout(req.user.sub);
     res.clearCookie('refresh_token');
+    res.clearCookie('access_token');
     return { message: 'Logged out' };
   }
 
@@ -76,6 +80,7 @@ export class AuthController {
 
     const tokens = await this.authService.refreshTokens(payload.sub, refreshToken);
     this.setRefreshTokenCookie(res, tokens.refresh_token);
+    this.setAccessTokenCookie(res, tokens.access_token);
     return { access_token: tokens.access_token };
   }
 
@@ -96,7 +101,16 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
+    });
+  }
+
+  private setAccessTokenCookie(res: Response, token: string) {
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
     });
   }
 }

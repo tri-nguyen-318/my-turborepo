@@ -46,10 +46,10 @@ export const Leaderboard = () => {
   }, []);
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-8">
+    <Card className="mx-auto mt-8 w-full max-w-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Trophy className="w-6 h-6 text-yellow-500" />
+          <Trophy className="h-6 w-6 text-yellow-500" />
           Real-time Leaderboard
         </CardTitle>
       </CardHeader>

@@ -4,7 +4,7 @@ import { getMessages } from 'next-intl/server';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ReactQueryProvider } from './providers/ReactQueryProvider';
 import LayoutWithTheme from './providers/LayoutWithTheme';
-import { AuthProvider } from './providers/AuthProvider';
+import { ReduxProvider } from './providers/ReduxProvider';
 import { hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
@@ -85,17 +85,17 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} flex h-screen flex-col antialiased`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <LayoutWithTheme>
-            <ReactQueryProvider>
-              <AuthProvider>
+          <ReduxProvider>
+            <LayoutWithTheme>
+              <ReactQueryProvider>
                 {children}
                 <Toaster richColors position="top-center" />
-              </AuthProvider>
-            </ReactQueryProvider>
-          </LayoutWithTheme>
+              </ReactQueryProvider>
+            </LayoutWithTheme>
+          </ReduxProvider>
         </NextIntlClientProvider>
       </body>
     </html>

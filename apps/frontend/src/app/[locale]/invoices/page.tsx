@@ -127,16 +127,16 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center bg-background p-8">
-      <div className="w-full max-w-4xl bg-card rounded-xl shadow-xl p-8 flex-1">
-        <h1 className="text-2xl font-bold mb-4">{t('title')}</h1>
-        <form className="flex flex-col sm:flex-row gap-4 mb-4" onSubmit={e => e.preventDefault()}>
+    <div className="flex flex-1 flex-col items-center bg-background p-8">
+      <div className="w-full max-w-5xl flex-1 rounded-xl bg-card p-8 shadow-xl">
+        <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
+        <form className="mb-4 flex flex-col gap-4 sm:flex-row" onSubmit={e => e.preventDefault()}>
           <Input placeholder={t('searchPlaceholder')} {...register('search')} className="flex-1" />
           <Button type="button" onClick={handleExport} variant="secondary">
             {t('exportCsv')}
           </Button>
         </form>
-        <div className="flex justify-end mb-2">
+        <div className="mb-2 flex justify-end">
           <Button
             onClick={() => {
               setEditing(null);
@@ -189,11 +189,11 @@ export default function InvoicesPage() {
             <DialogHeader>
               <DialogTitle>{editing ? t('editInvoice') : t('addInvoice')}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mb-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="mb-4 flex flex-col gap-4">
               <div className="flex flex-col gap-1">
                 <label className="font-medium">{t('customer')}</label>
                 <Input placeholder={t('customer')} {...register('customer', { required: true })} />
-                {errors.customer && <span className="text-red-500 text-xs">{t('required')}</span>}
+                {errors.customer && <span className="text-xs text-red-500">{t('required')}</span>}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="font-medium">{t('amount')}</label>
@@ -202,7 +202,7 @@ export default function InvoicesPage() {
                   type="number"
                   {...register('amount', { required: true })}
                 />
-                {errors.amount && <span className="text-red-500 text-xs">{t('required')}</span>}
+                {errors.amount && <span className="text-xs text-red-500">{t('required')}</span>}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="font-medium">{t('date')}</label>
@@ -217,7 +217,7 @@ export default function InvoicesPage() {
                     />
                   )}
                 />
-                {errors.date && <span className="text-red-500 text-xs">{t('required')}</span>}
+                {errors.date && <span className="text-xs text-red-500">{t('required')}</span>}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="font-medium">{t('status')}</label>

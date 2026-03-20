@@ -34,6 +34,30 @@
       "notAvailable": "N/A"
     }
   },
+  "hero": {
+    "addField": "Add {field}...",
+    "defaultName": "Your Name",
+    "defaultRole": "Your Role",
+    "defaultBio": "A short bio about yourself...",
+    "downloadCv": "Download CV",
+    "uploadCv": "Upload CV",
+    "uploadingCv": "Uploading...",
+    "avatarUpdated": "Avatar updated successfully",
+    "avatarUpdateFailed": "Failed to update avatar",
+    "cvUploaded": "CV uploaded successfully",
+    "cvUploadFailed": "Failed to upload CV",
+    "cvDownloadFailed": "Failed to download CV",
+    "pdfOnly": "Please select a PDF file",
+    "updateFailed": "Failed to update {field}. Please try again.",
+    "placeholderName": "Name",
+    "placeholderRole": "Role (e.g. Software Engineer)",
+    "placeholderBio": "Short bio about yourself...",
+    "placeholderLocation": "Location",
+    "placeholderEmail": "Email",
+    "placeholderPhone": "Phone",
+    "placeholderGithub": "GitHub URL (e.g. github.com/username)",
+    "placeholderLinkedin": "LinkedIn URL (e.g. linkedin.com/in/username)"
+  },
   "main": {
     "title": "Tri's Portfolio",
     "welcome": "Welcome! Explore my full-stack demos and playgrounds below.",
@@ -49,7 +73,10 @@
     "leaderboardDemoDesc": "Live ranking updates using Redis and Socket.io.",
     "selectLanguage": "Select language",
     "langEn": "English",
-    "langVi": "Tiếng Việt"
+    "langVi": "Tiếng Việt",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "logout": "Logout"
   },
   "chat": {
     "channels": "Channels",

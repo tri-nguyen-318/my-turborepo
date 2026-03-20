@@ -11,7 +11,6 @@ import {
 
 interface UseMultipartUploadParams {
   file: File | null;
-  token: string;
   setStatus: (status: UploadStatus) => void;
   setProgress: (progress: number) => void;
   setUploadDetails: React.Dispatch<React.SetStateAction<UploadDetails>>;
@@ -19,7 +18,6 @@ interface UseMultipartUploadParams {
 
 export const useMultipartUpload = ({
   file,
-  token,
   setStatus,
   setProgress,
   setUploadDetails,
@@ -36,8 +34,7 @@ export const useMultipartUpload = ({
     let fileKey: string | null = null;
 
     try {
-      // Initiate multipart upload
-      const initRes = await initiateMultipartUpload(file.name, file.type, token);
+      const initRes = await initiateMultipartUpload(file.name, file.type);
       uploadId = initRes.uploadId;
       fileKey = initRes.key;
       setUploadDetails(prev => ({ ...prev, uploadId, key: fileKey, totalParts }));
@@ -45,7 +42,6 @@ export const useMultipartUpload = ({
       const uploadedParts: UploadPart[] = [];
       let partsCompleted = 0;
 
-      // Upload parts in batches
       console.log('📦 [STEP 4] Preparing to upload parts...');
       console.log(`⚙️ Max concurrent uploads: ${MAX_CONCURRENT_UPLOADS}`);
 
@@ -56,14 +52,7 @@ export const useMultipartUpload = ({
           const partNumber = i + 1;
 
           const uploadPartPromise = async () => {
-            const part = await uploadSinglePart(
-              file,
-              fileKey!,
-              uploadId!,
-              partNumber,
-              totalParts,
-              token,
-            );
+            const part = await uploadSinglePart(file, fileKey!, uploadId!, partNumber, totalParts);
             uploadedParts.push(part);
             partsCompleted++;
             setUploadDetails(prev => ({ ...prev, partsUploaded: partsCompleted }));
@@ -79,7 +68,6 @@ export const useMultipartUpload = ({
         return Promise.all(batchPromises);
       };
 
-      // Execute uploads in batches
       console.log(
         `⏳ [STEP 7] Uploading ${totalParts} parts in batches of ${MAX_CONCURRENT_UPLOADS}...`,
       );
@@ -90,20 +78,18 @@ export const useMultipartUpload = ({
       }
       console.log('✅ All parts uploaded successfully!');
 
-      // Sort parts and complete upload
       uploadedParts.sort((a, b) => a.PartNumber - b.PartNumber);
-      await completeMultipartUpload(fileKey, uploadId, uploadedParts, token);
+      await completeMultipartUpload(fileKey, uploadId, uploadedParts);
       setStatus(UploadStatus.COMPLETE);
     } catch (error) {
       console.error('❌ Upload process failed:', error);
       setStatus(UploadStatus.ERROR);
 
-      // Abort upload for cleanup
       if (uploadId && fileKey) {
-        await abortMultipartUpload(fileKey, uploadId, token);
+        await abortMultipartUpload(fileKey, uploadId);
       }
     }
-  }, [file, token, setStatus, setProgress, setUploadDetails]);
+  }, [file, setStatus, setProgress, setUploadDetails]);
 
   return { handleUpload };
 };

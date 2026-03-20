@@ -17,17 +17,17 @@ export const UploadButton = ({ onClick, disabled, status, isUploading }: UploadB
     <Button onClick={onClick} disabled={disabled} className="w-full">
       {isUploading ? (
         <>
-          <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+          <Loader2 className="mr-3 h-5 w-5 animate-spin" />
           {t('uploading')}
         </>
       ) : status === UploadStatus.COMPLETE ? (
         <>
-          <CheckCircle className="w-5 h-5 mr-3" />
+          <CheckCircle className="mr-3 h-5 w-5" />
           {t('complete')}
         </>
       ) : status === UploadStatus.ERROR ? (
         <>
-          <XCircle className="w-5 h-5 mr-2" />
+          <XCircle className="mr-2 h-5 w-5" />
           {t('retry')}
         </>
       ) : (

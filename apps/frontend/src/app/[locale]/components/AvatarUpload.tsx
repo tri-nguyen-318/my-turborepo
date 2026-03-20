@@ -3,10 +3,14 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, X, Loader2 } from 'lucide-react';
-import { useAuth } from '@/app/[locale]/providers/AuthProvider';
-import { uploadApi } from '@/lib/api/upload/uploadApi';
 import { CHUNK_SIZE } from '@/app/[locale]/components/video-uploader/config';
 import type { UploadPart } from '@/app/[locale]/components/video-uploader/types';
+import {
+  useInitiateUploadMutation,
+  useGetSignedUrlMutation,
+  useCompleteUploadMutation,
+  uploadChunk,
+} from '@/store/api/apiSlice';
 
 interface AvatarUploadProps {
   onUploadComplete: (url: string) => void;
@@ -14,63 +18,55 @@ interface AvatarUploadProps {
 }
 
 export const AvatarUpload = ({ onUploadComplete, onCancel }: AvatarUploadProps) => {
-  const { accessToken } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [initiateUpload] = useInitiateUploadMutation();
+  const [getSignedUrl] = useGetSignedUrlMutation();
+  const [completeUpload] = useCompleteUploadMutation();
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !accessToken) return;
+    if (!file) return;
 
     setIsUploading(true);
     setProgress(0);
 
     try {
-      // 1. Initiate upload
-      const { uploadId, key } = await uploadApi.initiate(file.name, file.type, accessToken);
+      const { uploadId, key } = await initiateUpload({
+        filename: file.name,
+        contentType: file.type,
+      }).unwrap();
 
-      // 2. Upload chunks
       const totalParts = Math.ceil(file.size / CHUNK_SIZE);
       const parts: UploadPart[] = [];
 
       for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
         const start = (partNumber - 1) * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, file.size);
-        const chunk = file.slice(start, end);
+        const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
 
-        // Get signed URL
-        const { signedUrl } = await uploadApi.getSignedUrl(key, uploadId, partNumber, accessToken);
-
-        // Upload to S3
-        const etag = await uploadApi.uploadChunk(signedUrl, chunk, file.type);
+        const { signedUrl } = await getSignedUrl({ key, uploadId, partNumber }).unwrap();
+        const etag = await uploadChunk(signedUrl, chunk);
         parts.push({ ETag: etag, PartNumber: partNumber });
 
         setProgress(Math.round((partNumber / totalParts) * 100));
       }
 
-      // 3. Complete upload
-      const result = await uploadApi.complete(key, uploadId, parts, accessToken);
-
-      // Construct public URL (assuming bucket is public or proxied)
-      // Since result.location might be internal minio URL, we construct a relative path or use a proxy if setup
-      // For now, we'll use the result.location but you might need a getPublicUrl helper
-      const publicUrl = result.location;
-
-      onUploadComplete(publicUrl);
+      const result = await completeUpload({ key, uploadId, parts }).unwrap();
+      onUploadComplete(result.location);
     } catch (error) {
       console.error('Avatar upload failed', error);
-      // Abort if possible (requires storing key/uploadId in state, skipped for simplicity here)
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center rounded-full z-20">
+    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-full bg-black/60">
       {isUploading ? (
         <div className="flex flex-col items-center text-white">
-          <Loader2 className="animate-spin mb-2" />
+          <Loader2 className="mb-2 animate-spin" />
           <span className="text-xs font-medium">{progress}%</span>
         </div>
       ) : (
@@ -78,7 +74,7 @@ export const AvatarUpload = ({ onUploadComplete, onCancel }: AvatarUploadProps) 
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 hover:text-white"
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="h-5 w-5" />
@@ -86,7 +82,7 @@ export const AvatarUpload = ({ onUploadComplete, onCancel }: AvatarUploadProps) 
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 hover:text-white"
             onClick={onCancel}
           >
             <X className="h-5 w-5" />

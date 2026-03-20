@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './shared/database/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profile/profile.module';
@@ -12,13 +11,6 @@ import { HealthController } from './health.controller';
   controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env'] }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'),
-      }),
-      inject: [ConfigService],
-    }),
     PrismaModule,
     AuthModule,
     ProfileModule,
