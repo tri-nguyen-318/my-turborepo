@@ -9,8 +9,11 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.use(cookieParser());
 
+  const frontendUrl = (process.env.FRONTEND_URL ?? '').replace(/\/$/, '');
+  const allowedOrigins = [frontendUrl, frontendUrl.replace('://', '://www.')].filter(Boolean);
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL,
+    origin: allowedOrigins,
     credentials: true,
   });
 

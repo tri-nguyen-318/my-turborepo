@@ -13,6 +13,14 @@ export default function Home() {
         <Hero />
         <div className="mt-8 grid grid-cols-1 gap-4 pb-10 sm:grid-cols-2 lg:grid-cols-3">
           <DemoCard
+            href="/tictactoe"
+            title={t('tictactoeDemoTitle')}
+            description={t('tictactoeDemoDesc')}
+            icon={Gamepad2}
+            accent="bg-pink-500/10"
+            iconColor="text-pink-500"
+          />
+          <DemoCard
             href="/upload"
             title={t('uploadDemoTitle')}
             description={t('uploadDemoDesc')}
@@ -35,14 +43,6 @@ export default function Home() {
             icon={FileText}
             accent="bg-orange-500/10"
             iconColor="text-orange-500"
-          />
-          <DemoCard
-            href="/tictactoe"
-            title={t('tictactoeDemoTitle')}
-            description={t('tictactoeDemoDesc')}
-            icon={Gamepad2}
-            accent="bg-pink-500/10"
-            iconColor="text-pink-500"
           />
         </div>
       </div>
