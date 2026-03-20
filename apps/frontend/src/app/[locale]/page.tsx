@@ -1,5 +1,5 @@
 'use client';
-import { Upload, MessageCircle, Mail, FileText, Trophy } from 'lucide-react';
+import { Upload, Mail, FileText, Gamepad2 } from 'lucide-react';
 import { DemoCard } from './components/DemoCard';
 import { Hero } from './components/Hero';
 import { useTranslations } from 'next-intl';
@@ -21,14 +21,6 @@ export default function Home() {
             iconColor="text-blue-500"
           />
           <DemoCard
-            href="/chat"
-            title={t('chatDemoTitle')}
-            description={t('chatDemoDesc')}
-            icon={MessageCircle}
-            accent="bg-green-500/10"
-            iconColor="text-green-500"
-          />
-          <DemoCard
             href="/email"
             title={t('emailDemoTitle')}
             description={t('emailDemoDesc')}
@@ -45,12 +37,12 @@ export default function Home() {
             iconColor="text-orange-500"
           />
           <DemoCard
-            href="/leaderboard"
-            title={t('leaderboardDemoTitle')}
-            description={t('leaderboardDemoDesc')}
-            icon={Trophy}
-            accent="bg-yellow-500/10"
-            iconColor="text-yellow-500"
+            href="/tictactoe"
+            title={t('tictactoeDemoTitle')}
+            description={t('tictactoeDemoDesc')}
+            icon={Gamepad2}
+            accent="bg-pink-500/10"
+            iconColor="text-pink-500"
           />
         </div>
       </div>

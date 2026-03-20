@@ -120,6 +120,9 @@ importers:
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
+      groq-sdk:
+        specifier: ^1.1.1
+        version: 1.1.1
       passport:
         specifier: ^0.6.0
         version: 0.6.0
@@ -287,7 +290,7 @@ importers:
         specifier: ^3.2.0
         version: 3.3.0(react@19.2.0)
       socket.io-client:
-        specifier: ^4.8.2
+        specifier: ^4.8.3
         version: 4.8.3
       sonner:
         specifier: ^2.0.7
@@ -3954,6 +3957,10 @@ packages:
 
   graphmatch@1.1.1:
     resolution: {integrity: sha512-5ykVn/EXM1hF0XCaWh05VbYvEiOL2lY1kBxZtaYsyvjp7cmWOU1XsAdfQBwClraEofXDT197lFbXOEVMHpvQOg==}
+
+  groq-sdk@1.1.1:
+    resolution: {integrity: sha512-p0fb/sfrYfUDJf+b4s+ptV6XrQnY0gA0u2pbaH4E1l6yaeLCKtdX5OBhP/wXXBuKrSnU9w45RaFebfJDWxsXMw==}
+    hasBin: true
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -10397,6 +10404,8 @@ snapshots:
   grammex@3.1.12: {}
 
   graphmatch@1.1.1: {}
+
+  groq-sdk@1.1.1: {}
 
   has-bigints@1.1.0: {}
 

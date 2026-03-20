@@ -4,7 +4,7 @@ import { PrismaModule } from './shared/database/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { UploadModule } from './modules/upload/upload.module';
-import { ChatModule } from './modules/chat/chat.module';
+import { TicTacToeModule } from './modules/tictactoe/tictactoe.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -15,7 +15,7 @@ import { HealthController } from './health.controller';
     AuthModule,
     ProfileModule,
     UploadModule,
-    ChatModule,
+    TicTacToeModule,
   ],
 })
 export class AppModule {}
