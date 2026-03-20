@@ -33,7 +33,7 @@ export const HeroSkills = ({ skills = [], isAllowedToEdit, onUpdate }: HeroSkill
     onUpdate(skills.filter(s => s !== skill));
   };
 
-  if (!isAllowedToEdit && skills.length === 0) return null;
+  if (!isAllowedToEdit && (skills || [])?.length === 0) return null;
 
   return (
     <div className="space-y-2">

@@ -1,7 +1,7 @@
 FROM node:22-alpine
 
 # Install required libs
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl ca-certificates
 
 WORKDIR /app
 
