@@ -23,7 +23,7 @@ const resolveHref = (value: string, linkPrefix: string) =>
   value.startsWith('http') || value.startsWith('mailto:') ? value : `${linkPrefix}${value}`;
 
 const linkClass = (noTruncate?: boolean) =>
-  `text-primary underline underline-offset-2 hover:opacity-80 transition-opacity${noTruncate ? '' : ' truncate'}`;
+  `text-primary whitespace-nowrap underline underline-offset-2 no-wrap hover:opacity-80 transition-opacity${noTruncate ? '' : ' truncate'}`;
 
 export const EditableField = ({
   value,
