@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 
 interface MailOptions {
   to: string | string[];
@@ -13,51 +12,42 @@ interface MailOptions {
 @Injectable()
 export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: Transporter | null = null;
-  private isConfigured = false;
-  private fromAddress = 'noreply@demo.com';
+  private resend: Resend | null = null;
 
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit() {
-    const host = this.config.get<string>('SMTP_HOST');
-    const port = this.config.get<number>('SMTP_PORT');
-    const user = this.config.get<string>('SMTP_USER');
-    const pass = this.config.get<string>('SMTP_PASS');
-
-    if (host && user && pass) {
-      this.fromAddress = user;
-      this.transporter = nodemailer.createTransport({
-        host,
-        port: port ?? 587,
-        secure: (port ?? 587) === 465,
-        auth: { user, pass },
-      });
-      this.isConfigured = true;
-      this.logger.log('Email service configured with SMTP');
+    const apiKey = this.config.get<string>('RESEND_API_KEY');
+    if (apiKey) {
+      this.resend = new Resend(apiKey);
+      this.logger.log('Email service configured with Resend');
     } else {
-      this.logger.warn('SMTP not configured — emails will be logged to console');
+      this.logger.warn('RESEND_API_KEY not set — emails will be logged to console');
     }
   }
 
   async sendMail(options: MailOptions): Promise<{ messageId: string }> {
     const toArray = Array.isArray(options.to) ? options.to : [options.to];
 
-    if (!this.isConfigured || !this.transporter) {
+    if (!this.resend) {
       this.logger.log(
         `[EMAIL-FALLBACK] To: ${toArray.join(', ')} | Subject: ${options.subject} | Body: ${options.text}`,
       );
       return { messageId: `console-${Date.now()}` };
     }
 
-    const info = await this.transporter.sendMail({
-      from: this.fromAddress,
-      to: toArray.join(', '),
+    const { data, error } = await this.resend.emails.send({
+      from: this.config.get<string>('RESEND_FROM') ?? 'onboarding@resend.dev',
+      to: toArray,
       subject: options.subject,
       text: options.text,
       html: options.html,
     });
 
-    return { messageId: info.messageId };
+    if (error || !data) {
+      throw new Error(error?.message ?? 'Failed to send email');
+    }
+
+    return { messageId: data.id };
   }
 }
