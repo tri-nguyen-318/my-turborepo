@@ -88,7 +88,9 @@
     "signIn": "ログイン",
     "signUp": "登録",
     "logout": "ログアウト",
-    "adminPanel": "管理パネル"
+    "adminPanel": "管理パネル",
+    "coldStartTitle": "サーバーが起動中…",
+    "coldStartDesc": "バックエンドは無料プランでホストされており、起動に最大30秒かかる場合があります。しばらくお待ちください！"
   },
   "tictactoe": {
     "title": "三目並べ",

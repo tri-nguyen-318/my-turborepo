@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DarkModeToggle } from '@/components/ui/DarkModeToggle';
 import { useDarkMode } from '@/components/ui/useDarkMode';
@@ -32,6 +32,12 @@ function LayoutWithTheme({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
   const [refreshToken] = useRefreshTokenMutation();
   const [getProfile] = useLazyGetProfileQuery();
+  const [showColdStart, setShowColdStart] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowColdStart(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -54,6 +60,17 @@ function LayoutWithTheme({ children }: { children: React.ReactNode }) {
     },
     [pathname, router],
   );
+
+  if (loading && showColdStart) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/95 backdrop-blur-sm">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        <p className="text-lg font-semibold">{t('coldStartTitle')}</p>
+        <p className="max-w-sm text-center text-sm text-muted-foreground">{t('coldStartDesc')}</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur">

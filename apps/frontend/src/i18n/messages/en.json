@@ -88,7 +88,9 @@
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "logout": "Logout",
-    "adminPanel": "Admin Panel"
+    "adminPanel": "Admin Panel",
+    "coldStartTitle": "Server is warming up…",
+    "coldStartDesc": "The backend is hosted on a free tier and may take up to 30 seconds to wake up. Thank you for your patience!"
   },
   "tictactoe": {
     "title": "Tic-Tac-Toe",

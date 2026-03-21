@@ -88,7 +88,9 @@
     "signIn": "Đăng nhập",
     "signUp": "Đăng ký",
     "logout": "Đăng xuất",
-    "adminPanel": "Bảng quản trị"
+    "adminPanel": "Bảng quản trị",
+    "coldStartTitle": "Server đang khởi động…",
+    "coldStartDesc": "Backend được host trên gói miễn phí, có thể mất tới 30 giây để khởi động. Cảm ơn bạn đã kiên nhẫn!"
   },
   "tictactoe": {
     "title": "Caro 3x3",
