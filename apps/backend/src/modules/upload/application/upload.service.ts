@@ -15,6 +15,7 @@ import {
   HeadBucketCommand,
   CreateBucketCommand,
   PutBucketCorsCommand,
+  PutBucketPolicyCommand,
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -47,6 +48,7 @@ export class UploadService implements OnModuleInit {
     await this.ensureBucket(this.privateBucket);
     await this.setBucketCors(this.publicBucket);
     await this.setBucketCors(this.privateBucket);
+    await this.setPublicReadPolicy(this.publicBucket);
   }
 
   private async ensureBucket(bucketName: string) {
@@ -65,6 +67,26 @@ export class UploadService implements OnModuleInit {
       } else {
         console.error(`Error checking bucket "${bucketName}":`, error);
       }
+    }
+  }
+
+  private async setPublicReadPolicy(bucketName: string) {
+    const policy = JSON.stringify({
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: '*',
+          Action: ['s3:GetObject'],
+          Resource: [`arn:aws:s3:::${bucketName}/*`],
+        },
+      ],
+    });
+    try {
+      await this.client.send(new PutBucketPolicyCommand({ Bucket: bucketName, Policy: policy }));
+      console.log(`Public-read policy set for bucket "${bucketName}".`);
+    } catch (e) {
+      console.error(`Failed to set public-read policy for "${bucketName}":`, e);
     }
   }
 

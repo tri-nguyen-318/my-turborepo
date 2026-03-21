@@ -1,4 +1,6 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store/store';
 import { CHUNK_SIZE, MAX_CONCURRENT_UPLOADS } from './config';
 import type { UploadPart, UploadDetails } from './types';
 import { UploadStatus } from './types';
@@ -22,6 +24,8 @@ export const useMultipartUpload = ({
   setProgress,
   setUploadDetails,
 }: UseMultipartUploadParams) => {
+  const isAuthenticated = useSelector((state: RootState) => !!state.auth.accessToken);
+
   const handleUpload = useCallback(async () => {
     if (!file) return;
 
@@ -35,7 +39,8 @@ export const useMultipartUpload = ({
     let fileBucket: string | null = null;
 
     try {
-      const initRes = await initiateMultipartUpload(file.name, file.type);
+      const isPublic = !isAuthenticated;
+      const initRes = await initiateMultipartUpload(file.name, file.type, isPublic);
       uploadId = initRes.uploadId;
       fileKey = initRes.key;
       fileBucket = initRes.bucket;
@@ -93,6 +98,7 @@ export const useMultipartUpload = ({
         fileKey,
         uploadId,
         uploadedParts,
+        isPublic,
       );
       setUploadDetails(prev => ({ ...prev, location }));
       setStatus(UploadStatus.COMPLETE);
@@ -104,7 +110,7 @@ export const useMultipartUpload = ({
         await abortMultipartUpload(fileBucket, fileKey, uploadId);
       }
     }
-  }, [file, setStatus, setProgress, setUploadDetails]);
+  }, [file, setStatus, setProgress, setUploadDetails, isAuthenticated]);
 
   return { handleUpload };
 };
