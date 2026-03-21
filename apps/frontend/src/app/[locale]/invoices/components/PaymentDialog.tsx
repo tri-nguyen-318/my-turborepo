@@ -20,58 +20,47 @@ interface Props {
   hasPaypal: boolean;
   onClose: () => void;
   onRequestPayment: (id: number) => Promise<unknown>;
-  onPay: (id: number, token: string) => Promise<unknown>;
+  onVerifyToken: (id: number, token: string) => Promise<unknown>;
   onCreatePaypalOrder: (id: number) => Promise<{ orderId: string }>;
   onCapturePaypalOrder: (id: number, orderId: string) => Promise<unknown>;
 }
 
-type Method = 'choose' | 'email-request' | 'email-enter' | 'paypal';
+type Step = 'otp-send' | 'otp-enter' | 'paypal';
 
 export function PaymentDialog({
   invoice,
   hasPaypal,
   onClose,
   onRequestPayment,
-  onPay,
+  onVerifyToken,
   onCreatePaypalOrder,
   onCapturePaypalOrder,
 }: Props) {
   const t = useTranslations('invoicesDemo');
-  const [method, setMethod] = useState<Method>('choose');
+  const [step, setStep] = useState<Step>('otp-send');
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
-  const [isRequesting, setIsRequesting] = useState(false);
-  const [isPaying, setIsPaying] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleClose = () => {
-    setMethod('choose');
+    setStep('otp-send');
     setToken('');
     setError('');
     onClose();
   };
 
-  const handleRequest = async () => {
+  const handleSendCode = async () => {
     if (!invoice) return;
-    setIsRequesting(true);
+    setIsSending(true);
+    setError('');
     try {
       await onRequestPayment(invoice.id);
-      setMethod('email-enter');
-    } finally {
-      setIsRequesting(false);
-    }
-  };
-
-  const handlePay = async () => {
-    if (!invoice) return;
-    setError('');
-    setIsPaying(true);
-    try {
-      await onPay(invoice.id, token.toUpperCase());
-      handleClose();
+      setStep('otp-enter');
     } catch {
-      setError(t('tokenInvalid'));
+      setError(t('sending'));
     } finally {
-      setIsPaying(false);
+      setIsSending(false);
     }
   };
 
@@ -92,55 +81,55 @@ export function PaymentDialog({
           )}
         </DialogHeader>
 
-        {method === 'choose' && (
-          <div className="flex flex-col gap-3">
-            <Button
-              variant="outline"
-              className="h-14 text-base"
-              onClick={() => setMethod('email-request')}
-            >
-              {t('emailMethod')}
-            </Button>
-            {hasPaypal && (
-              <Button
-                variant="outline"
-                className="h-14 text-base"
-                onClick={() => setMethod('paypal')}
-              >
-                {t('paypalMethod')}
-              </Button>
-            )}
-            <DialogFooter>
-              <Button variant="ghost" onClick={handleClose}>
-                {t('cancel')}
-              </Button>
-            </DialogFooter>
-          </div>
-        )}
-
-        {method === 'email-request' && (
+        {step === 'otp-send' && (
           <div className="flex flex-col gap-4">
             {invoice && (
               <p className="text-sm text-muted-foreground">
                 {t('paymentEmailHint', { email: invoice.customerEmail })}
               </p>
             )}
+            {error && <p className="text-xs text-red-500">{error}</p>}
             <DialogFooter>
-              <Button variant="outline" onClick={handleClose}>
+              <Button variant="outline" onClick={handleClose} disabled={isSending}>
                 {t('cancel')}
               </Button>
-              <Button onClick={handleRequest} disabled={isRequesting}>
-                {isRequesting ? t('sending') : t('sendPaymentRequest')}
+              <Button onClick={handleSendCode} disabled={isSending}>
+                {isSending ? t('sending') : t('sendPaymentRequest')}
               </Button>
             </DialogFooter>
           </div>
         )}
 
-        {method === 'email-enter' && (
+        {step === 'otp-enter' && invoice && (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted-foreground">{t('enterTokenHint')}</p>
             <div className="flex justify-center">
-              <InputOTP maxLength={6} value={token} onChange={v => setToken(v.toUpperCase())}>
+              <InputOTP
+                maxLength={6}
+                value={token}
+                disabled={isVerifying}
+                onChange={async v => {
+                  const upper = v.toUpperCase();
+                  setToken(upper);
+                  setError('');
+                  if (upper.length === 6) {
+                    setIsVerifying(true);
+                    try {
+                      await onVerifyToken(invoice.id, upper);
+                      if (hasPaypal) {
+                        setStep('paypal');
+                      } else {
+                        handleClose();
+                      }
+                    } catch {
+                      setError(t('tokenInvalid'));
+                      setToken('');
+                    } finally {
+                      setIsVerifying(false);
+                    }
+                  }
+                }}
+              >
                 <InputOTPGroup>
                   {Array.from({ length: 6 }).map((_, i) => (
                     <InputOTPSlot key={i} index={i} className="uppercase" />
@@ -148,20 +137,21 @@ export function PaymentDialog({
                 </InputOTPGroup>
               </InputOTP>
             </div>
+            {isVerifying && (
+              <p className="text-center text-sm text-muted-foreground">{t('processing')}</p>
+            )}
             {error && <p className="text-center text-xs text-red-500">{error}</p>}
             <DialogFooter>
-              <Button variant="outline" onClick={handleClose}>
+              <Button variant="outline" onClick={handleClose} disabled={isVerifying}>
                 {t('cancel')}
-              </Button>
-              <Button onClick={handlePay} disabled={isPaying || token.length < 6}>
-                {isPaying ? t('processing') : t('payNow')}
               </Button>
             </DialogFooter>
           </div>
         )}
 
-        {method === 'paypal' && invoice && (
+        {step === 'paypal' && invoice && (
           <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">{t('enterTokenHint')}</p>
             <PayPalButtons
               style={{ layout: 'vertical', shape: 'rect' }}
               createOrder={async () => {

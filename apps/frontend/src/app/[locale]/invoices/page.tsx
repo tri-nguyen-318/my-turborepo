@@ -12,7 +12,7 @@ import {
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
   useRequestPaymentMutation,
-  usePayInvoiceMutation,
+  useVerifyTokenMutation,
   useCreatePaypalOrderMutation,
   useCapturePaypalOrderMutation,
   downloadInvoicesCsv,
@@ -60,7 +60,7 @@ export default function InvoicesPage() {
   const [updateInvoice] = useUpdateInvoiceMutation();
   const [deleteInvoice] = useDeleteInvoiceMutation();
   const [requestPayment] = useRequestPaymentMutation();
-  const [payInvoice] = usePayInvoiceMutation();
+  const [verifyToken] = useVerifyTokenMutation();
   const [createPaypalOrder] = useCreatePaypalOrderMutation();
   const [capturePaypalOrder] = useCapturePaypalOrderMutation();
 
@@ -193,7 +193,7 @@ export default function InvoicesPage() {
           hasPaypal={!!paypalClientId}
           onClose={() => setPaymentInvoice(null)}
           onRequestPayment={id => requestPayment(id).unwrap()}
-          onPay={(id, token) => payInvoice({ id, token }).unwrap()}
+          onVerifyToken={(id, token) => verifyToken({ id, token }).unwrap()}
           onCreatePaypalOrder={id => createPaypalOrder(id).unwrap()}
           onCapturePaypalOrder={(id, orderId) => capturePaypalOrder({ id, orderId }).unwrap()}
         />

@@ -57,13 +57,12 @@ const invoiceApi = apiSlice.injectEndpoints({
       query: id => ({ url: `/api/invoices/${id}/request-payment`, method: 'POST' }),
       invalidatesTags: ['Invoices'],
     }),
-    payInvoice: builder.mutation<Invoice, { id: number; token: string }>({
+    verifyToken: builder.mutation<{ ok: boolean }, { id: number; token: string }>({
       query: ({ id, token }) => ({
-        url: `/api/invoices/${id}/pay`,
+        url: `/api/invoices/${id}/verify-token`,
         method: 'POST',
         body: { token },
       }),
-      invalidatesTags: ['Invoices'],
     }),
     createPaypalOrder: builder.mutation<{ orderId: string }, number>({
       query: id => ({ url: `/api/invoices/${id}/paypal/create-order`, method: 'POST' }),
@@ -85,7 +84,7 @@ export const {
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
   useRequestPaymentMutation,
-  usePayInvoiceMutation,
+  useVerifyTokenMutation,
   useCreatePaypalOrderMutation,
   useCapturePaypalOrderMutation,
 } = invoiceApi;

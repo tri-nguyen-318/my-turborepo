@@ -96,12 +96,19 @@ export function InvoiceFormDialog({ open, editing, onClose, onSubmit }: Props) {
           </div>
           <div className="flex flex-col gap-1">
             <label className="font-medium">{t('amount')}</label>
-            <Input
-              {...register('amount', { required: true })}
-              type="number"
-              step="0.01"
-              placeholder={t('amount')}
-            />
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                $
+              </span>
+              <Input
+                {...register('amount', { required: true })}
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                className="pl-7"
+              />
+            </div>
             {errors.amount && <span className="text-xs text-red-500">{t('required')}</span>}
           </div>
           <div className="flex flex-col gap-1">

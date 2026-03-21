@@ -56,9 +56,9 @@ export class InvoiceController {
     return this.invoiceService.requestPayment(id);
   }
 
-  @Post(':id/pay')
-  pay(@Param('id', ParseIntPipe) id: number, @Body() dto: PayInvoiceDto) {
-    return this.invoiceService.verifyAndPay(id, dto.token);
+  @Post(':id/verify-token')
+  verifyToken(@Param('id', ParseIntPipe) id: number, @Body() dto: PayInvoiceDto) {
+    return this.invoiceService.verifyToken(id, dto.token);
   }
 
   @Post(':id/paypal/create-order')

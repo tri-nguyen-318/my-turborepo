@@ -150,7 +150,7 @@ export class InvoiceService {
     return { ok: true };
   }
 
-  async verifyAndPay(id: number, token: string) {
+  async verifyToken(id: number, token: string) {
     const invoice = await this.findOrThrow(id);
 
     if (invoice.status === 'PAID') {
@@ -166,17 +166,7 @@ export class InvoiceService {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    const updated = await this.prisma.invoice.update({
-      where: { id },
-      data: { status: 'PAID', paymentToken: null, paymentTokenExp: null },
-    });
-
-    await this.emailService.sendMail({
-      to: invoice.customerEmail,
-      ...emailTemplates.paymentConfirmed(invoice),
-    });
-
-    return updated;
+    return { ok: true };
   }
 
   getCsvData() {

@@ -24,7 +24,7 @@ export {
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
   useRequestPaymentMutation,
-  usePayInvoiceMutation,
+  useVerifyTokenMutation,
   useCreatePaypalOrderMutation,
   useCapturePaypalOrderMutation,
   downloadInvoicesCsv,
