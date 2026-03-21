@@ -28,6 +28,71 @@ A full-stack monorepo built with Turborepo, featuring a Next.js frontend and Nes
 - pnpm 10+
 - Docker & Docker Compose
 
+## Run with Docker (one command)
+
+> Runs the full stack — frontend, backend, PostgreSQL, and MinIO — with no local setup required.
+
+### 1. Configure secrets
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set at minimum:
+
+```env
+JWT_SECRET=any-long-random-string
+```
+
+Optional extras (Google OAuth, Groq AI, SMTP email):
+
+```env
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GROQ_API_KEY=...
+SMTP_HOST=...
+SMTP_USER=...
+SMTP_PASS=...
+```
+
+### 2. Start
+
+```bash
+docker compose up --build
+```
+
+| Service       | URL                   |
+| ------------- | --------------------- |
+| Frontend      | http://localhost:3000 |
+| Backend API   | http://localhost:3001 |
+| MinIO Console | http://localhost:9003 |
+
+> First build takes a few minutes. After that: `docker compose up`
+
+### 3. First-time MinIO setup
+
+1. Open http://localhost:9003, log in: `minioadmin` / `minioadminpassword`
+2. Go to **Buckets → uploads → Access Policy** → set to **Public**
+
+### Stop
+
+```bash
+docker compose down       # stop, keep data
+docker compose down -v    # stop and wipe all volumes
+```
+
+### Deploying to a remote server
+
+Set `NEXT_PUBLIC_API_URL` in `.env` to the public backend URL before building:
+
+```env
+NEXT_PUBLIC_API_URL=https://your-api-domain.com
+```
+
+Then rebuild: `docker compose up --build`
+
+---
+
 ## Getting Started
 
 ### 1. Install dependencies

@@ -8,6 +8,7 @@ import {
   DeleteObjectCommand,
   HeadBucketCommand,
   CreateBucketCommand,
+  PutBucketCorsCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PrismaService } from '../../../shared/database/prisma.service';
@@ -48,6 +49,35 @@ export class UploadService implements OnModuleInit {
       } else {
         console.error(`Error checking bucket "${this.bucket}":`, error);
       }
+    }
+
+    await this.setBucketCors(this.bucket);
+  }
+
+  private async setBucketCors(bucketName: string) {
+    const frontendUrl = (process.env.FRONTEND_URL ?? '').replace(/\/$/, '');
+    const allowedOrigins = [frontendUrl, frontendUrl.replace('://', '://www.')].filter(Boolean);
+
+    try {
+      await this.client.send(
+        new PutBucketCorsCommand({
+          Bucket: bucketName,
+          CORSConfiguration: {
+            CORSRules: [
+              {
+                AllowedOrigins: allowedOrigins,
+                AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+                AllowedHeaders: ['*'],
+                ExposeHeaders: ['ETag'],
+                MaxAgeSeconds: 3000,
+              },
+            ],
+          },
+        }),
+      );
+      console.log(`CORS configured for bucket "${bucketName}".`);
+    } catch (e) {
+      console.error(`Failed to set CORS for "${bucketName}":`, e);
     }
   }
 

@@ -72,7 +72,7 @@ function FileCard({ file, onDelete }: { file: UploadedFile; onDelete: (id: numbe
               {file.filename}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {new Date(file.createdAt).toLocaleDateString()}
+              {new Date(file.createdAt).toLocaleString()}
               {file.uploader && (
                 <span className="ml-1">· {file.uploader.name ?? file.uploader.email}</span>
               )}

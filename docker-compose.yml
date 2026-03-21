@@ -1,30 +1,5 @@
-version: "3.8"
-
 services:
-  minio:
-    image: minio/minio:latest
-    ports:
-      - "9002:9000" # MinIO API Port
-      - "9003:9001" # MinIO Console Port
-    environment:
-      # CHANGE THESE SECRETS FOR PRODUCTION!
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadminpassword
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data # Persist data locally
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5673:5672" # RabbitMQ main port
-      - "15673:15672" # RabbitMQ management UI
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
+  # ── Infrastructure ───────────────────────────────────────────────────────────
   postgres:
     image: postgres:15
     ports:
@@ -35,35 +10,58 @@ services:
       POSTGRES_DB: mydatabase
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-  redis:
-    image: redis:latest
+  minio:
+    image: minio/minio:latest
     ports:
-      - "6380:6379"
-    volumes:
-      - redis_data:/data
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  localstack:
-    image: localstack/localstack:latest
-    ports:
-      - "4566:4566" # All AWS services on single port
+      - "9002:9000" # S3 API
+      - "9003:9001" # MinIO Console → http://localhost:9003
     environment:
-      - SERVICES=s3,dynamodb,sqs,sns,lambda
-      - DEBUG=0
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    command: server /data --console-address ":9001"
     volumes:
-      - localstack_data:/var/lib/localstack
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Applications ─────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "${PORT:-3001}:3001"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        # Browser calls the backend directly, so this must be the host address
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
-  minio_data:
-  rabbitmq_data:
   postgres_data:
-  redis_data:
-  mongo_data:
-  localstack_data:
+  minio_data:

@@ -132,6 +132,10 @@ export const Hero = () => {
 
   return (
     <section className="relative mb-8 w-full overflow-hidden rounded-xl border border-border/50 bg-linear-to-br from-primary/10 via-background to-secondary/10 py-12 shadow-sm md:py-24 lg:py-32">
+      <p className="absolute top-3 right-3 flex items-center gap-1 text-xs text-muted-foreground/60">
+        <Database className="h-3 w-3" />
+        {t('managedByCms')}
+      </p>
       <div className="container px-4 md:px-6">
         <div className="mb-4 flex justify-end gap-2">
           {fetchedInfo?.cvUrl &&
@@ -172,11 +176,6 @@ export const Hero = () => {
             </>
           )}
         </div>
-
-        <p className="mb-4 flex items-center gap-1 text-xs text-muted-foreground/60">
-          <Database className="h-3 w-3" />
-          {t('managedByCms')}
-        </p>
 
         <div className="flex w-full flex-col items-start gap-8 md:flex-row md:gap-12">
           <HeroAvatar
