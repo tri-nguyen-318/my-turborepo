@@ -1,3 +1,6 @@
+import { store } from '@/store/store';
+import { uploadChunk } from '@/store/api';
+import { uploadApi } from '@/store/api/uploadApi';
 import { CHUNK_SIZE } from './config';
 import type { UploadPart } from './types';
 
@@ -14,20 +17,16 @@ const withRetry = async <T>(fn: () => Promise<T>, retries = 3): Promise<T> => {
   }
   throw new Error('Retry limit exceeded');
 };
-import { store } from '@/store/store';
-import { uploadChunk } from '@/store/api';
-import { uploadApi } from '@/store/api/uploadApi';
 
 export const initiateMultipartUpload = async (
   filename: string,
   contentType: string,
+  isPublic: boolean,
 ): Promise<{ uploadId: string; key: string; bucket: string }> => {
   console.log('📤 [STEP 2] Initiating multipart upload...');
   const initRes = await withRetry(() =>
     store
-      .dispatch(
-        uploadApi.endpoints.initiateUpload.initiate({ filename, contentType, isPublic: false }),
-      )
+      .dispatch(uploadApi.endpoints.initiateUpload.initiate({ filename, contentType, isPublic }))
       .unwrap(),
   );
   console.log('✅ [STEP 3] Upload initiated. UploadId:', initRes.uploadId, 'Key:', initRes.key);
@@ -89,12 +88,19 @@ export const completeMultipartUpload = async (
   fileKey: string,
   uploadId: string,
   parts: UploadPart[],
+  isPublic: boolean,
 ): Promise<{ location: string }> => {
   console.log('🏁 [STEP 8] Completing multipart upload...');
   const completeRes = await withRetry(() =>
     store
       .dispatch(
-        uploadApi.endpoints.completeUpload.initiate({ bucket, key: fileKey, uploadId, parts }),
+        uploadApi.endpoints.completeUpload.initiate({
+          bucket,
+          key: fileKey,
+          uploadId,
+          parts,
+          isPublic,
+        }),
       )
       .unwrap(),
   );

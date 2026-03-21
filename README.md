@@ -122,7 +122,7 @@ This starts PostgreSQL, MongoDB, Redis, MinIO, RabbitMQ, and LocalStack.
 ```env
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgres://user:password@localhost:5434/mydatabase
+DATABASE_URL=postgresql://user:password@localhost:5434/mydatabase?schema=public
 FRONTEND_URL=http://localhost:3000
 JWT_SECRET=your-jwt-secret
 

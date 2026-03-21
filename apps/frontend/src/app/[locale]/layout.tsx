@@ -61,7 +61,7 @@ export async function generateMetadata({
       description: 'A modern web application built with Next.js, TurboRepo, and NestJS.',
     },
     icons: {
-      icon: '/favicon.ico',
+      icon: '/icon.png',
     },
     robots: {
       index: true,

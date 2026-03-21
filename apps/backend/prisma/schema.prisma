@@ -18,6 +18,9 @@ model User {
   updatedAt          DateTime       @updatedAt
   personalInfo       PersonalInfo?
   uploadedFiles      UploadedFile[]
+  imagePosts         ImagePost[]
+  imagePostLikes     ImagePostLike[]
+  imagePostComments  ImagePostComment[]
 }
 
 model UploadedFile {
@@ -47,6 +50,43 @@ model PersonalInfo {
   cvUrl    String?
   career   Json?
   skills   String[]
+}
+
+model ImagePost {
+  id           Int                @id @default(autoincrement())
+  userName     String
+  userId       Int?
+  user         User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  caption      String
+  url          String
+  likes        Int                @default(0)
+  comments     Int                @default(0)
+  blurDataUrl  String?
+  createdAt    DateTime           @default(now())
+  commentsList ImagePostComment[] @relation("commentsList")
+  likesList    ImagePostLike[]    @relation("likesList")
+}
+
+model ImagePostLike {
+  id          Int       @id @default(autoincrement())
+  imagePost   ImagePost @relation("likesList", fields: [imagePostId], references: [id], onDelete: Cascade)
+  imagePostId Int
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([imagePostId, userId])
+}
+
+model ImagePostComment {
+  id          Int       @id @default(autoincrement())
+  imagePost   ImagePost @relation("commentsList", fields: [imagePostId], references: [id], onDelete: Cascade)
+  imagePostId Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  userName    String
+  body        String
+  createdAt   DateTime  @default(now())
 }
 
 enum InvoiceStatus {

@@ -3,7 +3,7 @@ import type { RootState } from '@/store/store';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
-  tagTypes: ['PersonalInfo', 'UploadedFiles', 'Invoices'],
+  tagTypes: ['PersonalInfo', 'UploadedFiles', 'Invoices', 'ImagePosts', 'ImagePostComments'],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL,
     prepareHeaders: (headers, { getState }) => {

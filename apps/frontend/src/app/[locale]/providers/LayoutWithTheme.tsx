@@ -57,18 +57,19 @@ function LayoutWithTheme({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur">
-        <nav className="mx-auto flex max-w-5xl items-center justify-between p-4">
-          <Link href="/" className="text-xl font-bold text-primary hover:underline">
+        <nav className="mx-auto flex max-w-5xl items-center justify-between px-3 py-3 sm:p-4">
+          <Link href="/" className="text-lg font-bold text-primary hover:underline sm:text-xl">
             {t('title')}
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Select value={locale} onValueChange={handleLangChange}>
-              <SelectTrigger className="w-32" aria-label={t('selectLanguage')}>
+              <SelectTrigger className="w-18 sm:w-32" aria-label={t('selectLanguage')}>
                 <SelectValue placeholder={t('selectLanguage')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">{t('langEn')}</SelectItem>
+                <SelectItem value="jp">{t('langJp')}</SelectItem>
                 <SelectItem value="vi">{t('langVi')}</SelectItem>
               </SelectContent>
             </Select>
@@ -110,8 +111,8 @@ function LayoutWithTheme({ children }: { children: React.ReactNode }) {
                 </PopoverContent>
               </Popover>
             ) : (
-              <div className="ml-2 flex items-center gap-2">
-                <Button variant="ghost" size="sm" asChild>
+              <div className="flex items-center gap-1 sm:ml-2 sm:gap-2">
+                <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
                   <Link href="/signin">{t('signIn')}</Link>
                 </Button>
                 <Button size="sm" asChild>

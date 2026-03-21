@@ -30,6 +30,16 @@ export {
   downloadInvoicesCsv,
 } from './invoiceApi';
 
+export type { ImagePost, ImagePostComment, ImagePostPage } from './imagePostApi';
+export {
+  useListImagePostsQuery,
+  useToggleLikeMutation,
+  useListCommentsQuery,
+  useAddCommentMutation,
+  useCreatePostMutation,
+  useDeletePostMutation,
+} from './imagePostApi';
+
 export { authApiSlice } from './authApi';
 export {
   useRefreshTokenMutation,
