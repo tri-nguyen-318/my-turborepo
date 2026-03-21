@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Edit2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export interface EditableFieldProps {
   value: string | undefined;
@@ -14,6 +16,7 @@ export interface EditableFieldProps {
   linkPrefix?: string;
   className?: string;
   multiline?: boolean;
+  richText?: boolean;
   noTruncate?: boolean;
   readOnly?: boolean;
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'div';
@@ -25,6 +28,34 @@ const resolveHref = (value: string, linkPrefix: string) =>
 const linkClass = (noTruncate?: boolean) =>
   `text-primary whitespace-nowrap underline underline-offset-2 no-wrap hover:opacity-80 transition-opacity${noTruncate ? '' : ' truncate'}`;
 
+const MarkdownContent = ({ content, className }: { content: string; className?: string }) => (
+  <div className={className}>
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // XSS-safe: no dangerouslySetInnerHTML — react-markdown renders via React elements
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="text-primary underline underline-offset-2 hover:opacity-80"
+          >
+            {children}
+          </a>
+        ),
+        p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+        em: ({ children }) => <em className="italic">{children}</em>,
+        ul: ({ children }) => <ul className="ml-4 list-disc">{children}</ul>,
+        ol: ({ children }) => <ol className="ml-4 list-decimal">{children}</ol>,
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  </div>
+);
+
 export const EditableField = ({
   value,
   onSave,
@@ -33,6 +64,7 @@ export const EditableField = ({
   linkPrefix,
   className,
   multiline,
+  richText,
   noTruncate,
   readOnly,
   as: Component = 'span',
@@ -72,6 +104,8 @@ export const EditableField = ({
           >
             {value}
           </a>
+        ) : richText ? (
+          <MarkdownContent content={value} />
         ) : (
           <Component>{value}</Component>
         )}
@@ -84,16 +118,23 @@ export const EditableField = ({
       <div className={`flex ${align} w-full gap-2`}>
         {icon && <span className="mt-2 text-muted-foreground">{icon}</span>}
         <div className="relative flex-1">
-          {multiline ? (
-            <Textarea
-              autoFocus
-              value={current}
-              onChange={e => setCurrent(e.target.value)}
-              onBlur={handleSave}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              className={`min-h-[80px] text-sm ${className}`}
-            />
+          {multiline || richText ? (
+            <>
+              <Textarea
+                autoFocus
+                value={current}
+                onChange={e => setCurrent(e.target.value)}
+                onBlur={handleSave}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                className={`min-h-20 text-sm ${className}`}
+              />
+              {richText && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Supports **bold**, *italic*, [links](url), - lists
+                </p>
+              )}
+            </>
           ) : (
             <Input
               autoFocus
@@ -138,6 +179,8 @@ export const EditableField = ({
         >
           {value}
         </a>
+      ) : richText ? (
+        <MarkdownContent content={value} className="flex-1" />
       ) : (
         <Component>{value}</Component>
       )}

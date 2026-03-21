@@ -50,7 +50,7 @@ export const HeroInfo = ({
           placeholder={t('placeholderBio')}
           className="md:text-lg"
           readOnly={ro}
-          multiline
+          richText
         />
       </blockquote>
 

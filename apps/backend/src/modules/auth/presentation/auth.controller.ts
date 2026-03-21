@@ -58,9 +58,15 @@ export class AuthController {
   @Post('logout')
   @UseGuards(AuthGuard('jwt'))
   async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
-    await this.authService.logout(req.user.sub);
-    res.clearCookie('refresh_token');
-    res.clearCookie('access_token');
+    await this.authService.logout(req.user.sub ?? req.user.userId);
+    const isProduction = process.env.NODE_ENV === 'production';
+    const clearOpts = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+    };
+    res.clearCookie('refresh_token', clearOpts);
+    res.clearCookie('access_token', clearOpts);
     return { message: 'Logged out' };
   }
 
@@ -96,21 +102,23 @@ export class AuthController {
     return this.authService.updateProfile(req.user.sub ?? req.user.userId, body);
   }
 
-  private setRefreshTokenCookie(res: Response, token: string) {
-    res.cookie('refresh_token', token, {
+  private cookieOptions(maxAge: number) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    return {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: REFRESH_TOKEN_COOKIE_MAX_AGE,
-    });
+      secure: isProduction,
+      // SameSite=None is required for cross-domain cookies in production (frontend and backend on different domains).
+      // SameSite=Lax blocks cross-site POST requests, which breaks /auth/refresh.
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+      maxAge,
+    };
+  }
+
+  private setRefreshTokenCookie(res: Response, token: string) {
+    res.cookie('refresh_token', token, this.cookieOptions(REFRESH_TOKEN_COOKIE_MAX_AGE));
   }
 
   private setAccessTokenCookie(res: Response, token: string) {
-    res.cookie('access_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: ACCESS_TOKEN_COOKIE_MAX_AGE,
-    });
+    res.cookie('access_token', token, this.cookieOptions(ACCESS_TOKEN_COOKIE_MAX_AGE));
   }
 }
