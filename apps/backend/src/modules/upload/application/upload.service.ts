@@ -152,16 +152,22 @@ export class UploadService implements OnModuleInit {
       }),
     );
 
-    const location = `${process.env.S3_ENDPOINT}/${bucket}/${key}`;
-
     if (!isPublic) {
+      const rawLocation = `${process.env.S3_ENDPOINT}/${bucket}/${key}`;
       const filename = key.split('/').pop()?.split('-').slice(2).join('-') ?? key;
       await this.prisma.uploadedFile.create({
-        data: { key, location, filename, userId: userId ?? null },
+        data: { key, location: rawLocation, filename, userId: userId ?? null },
       });
+      // Return a presigned GET URL so the uploader can immediately preview/link the file
+      const presignedLocation = await this.getPresignedGetUrl(bucket, key);
+      return { location: presignedLocation, bucket, key };
     }
 
-    return { location, bucket, key };
+    // Public files: use the public-facing URL (pub-*.r2.dev or MinIO public URL)
+    const publicBase = (
+      process.env.S3_PUBLIC_URL ?? `${process.env.S3_ENDPOINT}/${bucket}`
+    ).replace(/\/$/, '');
+    return { location: `${publicBase}/${key}`, bucket, key };
   }
 
   async abort(bucket: string, key: string, uploadId: string) {
