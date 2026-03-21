@@ -50,7 +50,16 @@ export class InvoiceService {
         ],
       }),
     });
-    const data = (await res.json()) as { id: string };
+    const data = (await res.json()) as {
+      id?: string;
+      message?: string;
+      error_description?: string;
+    };
+    if (!res.ok || !data.id) {
+      throw new BadRequestException(
+        data.message ?? data.error_description ?? 'Failed to create PayPal order',
+      );
+    }
     return { orderId: data.id };
   }
 
@@ -62,8 +71,10 @@ export class InvoiceService {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     });
-    const data = (await res.json()) as { status: string };
-    if (data.status !== 'COMPLETED') throw new BadRequestException('PayPal payment not completed');
+    const data = (await res.json()) as { status?: string; message?: string };
+    if (!res.ok || data.status !== 'COMPLETED') {
+      throw new BadRequestException(data.message ?? 'PayPal payment not completed');
+    }
     const updated = await this.prisma.invoice.update({
       where: { id },
       data: { status: 'PAID', paymentToken: null, paymentTokenExp: null },

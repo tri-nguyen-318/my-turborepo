@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { PayPalButtons } from '@paypal/react-paypal-js';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import {
@@ -17,6 +17,7 @@ import type { Invoice } from '@/store/api';
 
 interface Props {
   invoice: Invoice | null;
+  hasPaypal: boolean;
   onClose: () => void;
   onRequestPayment: (id: number) => Promise<unknown>;
   onPay: (id: number, token: string) => Promise<unknown>;
@@ -28,6 +29,7 @@ type Method = 'choose' | 'email-request' | 'email-enter' | 'paypal';
 
 export function PaymentDialog({
   invoice,
+  hasPaypal,
   onClose,
   onRequestPayment,
   onPay,
@@ -99,13 +101,15 @@ export function PaymentDialog({
             >
               {t('emailMethod')}
             </Button>
-            <Button
-              variant="outline"
-              className="h-14 text-base"
-              onClick={() => setMethod('paypal')}
-            >
-              {t('paypalMethod')}
-            </Button>
+            {hasPaypal && (
+              <Button
+                variant="outline"
+                className="h-14 text-base"
+                onClick={() => setMethod('paypal')}
+              >
+                {t('paypalMethod')}
+              </Button>
+            )}
             <DialogFooter>
               <Button variant="ghost" onClick={handleClose}>
                 {t('cancel')}
@@ -158,18 +162,21 @@ export function PaymentDialog({
 
         {method === 'paypal' && invoice && (
           <div className="flex flex-col gap-4">
-            <PayPalScriptProvider
-              options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? '' }}
-            >
-              <PayPalButtons
-                style={{ layout: 'vertical', shape: 'rect' }}
-                createOrder={() => onCreatePaypalOrder(invoice.id).then(d => d.orderId)}
-                onApprove={data =>
-                  onCapturePaypalOrder(invoice.id, data.orderID).then(() => handleClose())
-                }
-                onError={() => setError('PayPal payment failed. Please try again.')}
-              />
-            </PayPalScriptProvider>
+            <PayPalButtons
+              style={{ layout: 'vertical', shape: 'rect' }}
+              createOrder={async () => {
+                setError('');
+                const { orderId } = await onCreatePaypalOrder(invoice.id);
+                return orderId;
+              }}
+              onApprove={data =>
+                onCapturePaypalOrder(invoice.id, data.orderID).then(() => handleClose())
+              }
+              onError={err => {
+                const msg = err instanceof Error ? err.message : 'PayPal payment failed.';
+                setError(msg);
+              }}
+            />
             {error && <p className="text-center text-xs text-red-500">{error}</p>}
             <DialogFooter>
               <Button variant="ghost" onClick={handleClose}>

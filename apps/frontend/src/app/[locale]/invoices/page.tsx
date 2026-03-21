@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSelector } from 'react-redux';
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -87,111 +88,116 @@ export default function InvoicesPage() {
     );
   }
 
-  return (
-    <div className="flex flex-1 flex-col items-center bg-background p-8">
-      <div className="w-full max-w-5xl flex-1 rounded-xl bg-card p-8 shadow-xl">
-        <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
+  const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? '';
 
-        <div className="mb-4 flex flex-col gap-4 sm:flex-row">
-          <Input
-            placeholder={t('searchPlaceholder')}
-            value={search}
-            onChange={e => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="flex-1"
-            type="number"
-            min={1}
-          />
-          <Button variant="secondary" onClick={() => downloadInvoicesCsv(accessToken!)}>
-            {t('exportCsv')}
-          </Button>
-          <Button
-            onClick={() => {
-              setEditing(null);
+  return (
+    <PayPalScriptProvider options={{ clientId: paypalClientId }} deferLoading={!paypalClientId}>
+      <div className="flex flex-1 flex-col items-center bg-background p-8">
+        <div className="w-full max-w-5xl flex-1 rounded-xl bg-card p-8 shadow-xl">
+          <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
+
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row">
+            <Input
+              placeholder={t('searchPlaceholder')}
+              value={search}
+              onChange={e => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="flex-1"
+              type="number"
+              min={1}
+            />
+            <Button variant="secondary" onClick={() => downloadInvoicesCsv(accessToken!)}>
+              {t('exportCsv')}
+            </Button>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
+              {t('addInvoice')}
+            </Button>
+          </div>
+
+          <InvoiceTable
+            invoices={invoices}
+            isLoading={isLoading}
+            onEdit={inv => {
+              setEditing(inv);
               setFormOpen(true);
             }}
-          >
-            {t('addInvoice')}
-          </Button>
+            onDelete={setDeleteId}
+            onPay={setPaymentInvoice}
+          />
+
+          <Pagination className="mt-4">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  label={t('paginationPrevious')}
+                  disabled={page === 1}
+                  onClick={() => setPage(p => p - 1)}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+                const near = p === 1 || p === totalPages || Math.abs(p - page) <= 1;
+                if (!near) {
+                  const isEllipsis = p === 2 || p === totalPages - 1;
+                  return isEllipsis ? (
+                    <PaginationItem key={p}>
+                      <PaginationEllipsis label={t('paginationMorePages')} />
+                    </PaginationItem>
+                  ) : null;
+                }
+                return (
+                  <PaginationItem key={p}>
+                    <PaginationLink isActive={p === page} onClick={() => setPage(p)}>
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+
+              <PaginationItem>
+                <PaginationNext
+                  label={t('paginationNext')}
+                  disabled={page === totalPages}
+                  onClick={() => setPage(p => p + 1)}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
 
-        <InvoiceTable
-          invoices={invoices}
-          isLoading={isLoading}
-          onEdit={inv => {
-            setEditing(inv);
-            setFormOpen(true);
+        <InvoiceFormDialog
+          open={formOpen}
+          editing={editing}
+          onClose={() => {
+            setFormOpen(false);
+            setEditing(null);
           }}
-          onDelete={setDeleteId}
-          onPay={setPaymentInvoice}
+          onSubmit={handleFormSubmit}
         />
 
-        <Pagination className="mt-4">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                label={t('paginationPrevious')}
-                disabled={page === 1}
-                onClick={() => setPage(p => p - 1)}
-              />
-            </PaginationItem>
+        <DeleteInvoiceDialog
+          open={deleteId !== null}
+          onClose={() => setDeleteId(null)}
+          onConfirm={handleDelete}
+        />
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
-              const near = p === 1 || p === totalPages || Math.abs(p - page) <= 1;
-              if (!near) {
-                const isEllipsis = p === 2 || p === totalPages - 1;
-                return isEllipsis ? (
-                  <PaginationItem key={p}>
-                    <PaginationEllipsis label={t('paginationMorePages')} />
-                  </PaginationItem>
-                ) : null;
-              }
-              return (
-                <PaginationItem key={p}>
-                  <PaginationLink isActive={p === page} onClick={() => setPage(p)}>
-                    {p}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-
-            <PaginationItem>
-              <PaginationNext
-                label={t('paginationNext')}
-                disabled={page === totalPages}
-                onClick={() => setPage(p => p + 1)}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <PaymentDialog
+          invoice={paymentInvoice}
+          hasPaypal={!!paypalClientId}
+          onClose={() => setPaymentInvoice(null)}
+          onRequestPayment={id => requestPayment(id).unwrap()}
+          onPay={(id, token) => payInvoice({ id, token }).unwrap()}
+          onCreatePaypalOrder={id => createPaypalOrder(id).unwrap()}
+          onCapturePaypalOrder={(id, orderId) => capturePaypalOrder({ id, orderId }).unwrap()}
+        />
       </div>
-
-      <InvoiceFormDialog
-        open={formOpen}
-        editing={editing}
-        onClose={() => {
-          setFormOpen(false);
-          setEditing(null);
-        }}
-        onSubmit={handleFormSubmit}
-      />
-
-      <DeleteInvoiceDialog
-        open={deleteId !== null}
-        onClose={() => setDeleteId(null)}
-        onConfirm={handleDelete}
-      />
-
-      <PaymentDialog
-        invoice={paymentInvoice}
-        onClose={() => setPaymentInvoice(null)}
-        onRequestPayment={id => requestPayment(id).unwrap()}
-        onPay={(id, token) => payInvoice({ id, token }).unwrap()}
-        onCreatePaypalOrder={id => createPaypalOrder(id).unwrap()}
-        onCapturePaypalOrder={(id, orderId) => capturePaypalOrder({ id, orderId }).unwrap()}
-      />
-    </div>
+    </PayPalScriptProvider>
   );
 }
