@@ -27,8 +27,18 @@ export function NewPostForm() {
   const [blurDataUrl, setBlurDataUrl] = useState<string | undefined>(undefined);
   const [status, setStatus] = useState<UploadStatus>(UploadStatus.IDLE);
   const [progress, setProgress] = useState(0);
-  const [uploadDetails, setUploadDetails] = useState<UploadDetails>(EMPTY_DETAILS);
+  const [_uploadDetails, setUploadDetailsState] = useState<UploadDetails>(EMPTY_DETAILS);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Capture location in a ref so it's readable synchronously after upload
+  const locationRef = useRef<string | null>(null);
+  function setUploadDetails(updater: React.SetStateAction<UploadDetails>) {
+    setUploadDetailsState(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next.location) locationRef.current = next.location;
+      return next;
+    });
+  }
 
   const { handleUpload } = useMultipartUpload({
     file,
@@ -61,6 +71,7 @@ export function NewPostForm() {
     setStatus(UploadStatus.IDLE);
     setProgress(0);
     setUploadDetails(EMPTY_DETAILS);
+    locationRef.current = null;
     const blur = await generateBlurDataUrl(selected);
     setBlurDataUrl(blur);
   }
@@ -72,6 +83,7 @@ export function NewPostForm() {
     setStatus(UploadStatus.IDLE);
     setProgress(0);
     setUploadDetails(EMPTY_DETAILS);
+    locationRef.current = null;
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
@@ -81,49 +93,26 @@ export function NewPostForm() {
     handleRemoveFile();
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!caption.trim()) return;
+  async function handleSubmit() {
+    if (!file || !caption.trim()) return;
 
-    const url = uploadDetails.location;
-    if (!url) {
-      if (!file) return;
-      await handleUpload();
-      // status/uploadDetails will update via state — read after upload
-      return; // handleUpload is async but state updates are batched; use effect instead
-    }
+    await handleUpload();
+
+    const url = locationRef.current;
+    if (!url) return; // upload failed
 
     try {
-      await createPost({ url, caption: caption.trim() }).unwrap();
+      await createPost({ url, caption: caption.trim(), blurDataUrl }).unwrap();
       handleClose();
     } catch {
       // stay open on error
     }
   }
 
-  // Once upload completes, auto-submit if caption is ready
-  const uploadedUrl = uploadDetails.location;
   const isUploading = status === UploadStatus.UPLOADING;
-  const uploadComplete = status === UploadStatus.COMPLETE;
   const uploadError = status === UploadStatus.ERROR;
-
-  async function handlePost() {
-    if (!uploadedUrl || !caption.trim()) return;
-    try {
-      await createPost({ url: uploadedUrl, caption: caption.trim(), blurDataUrl }).unwrap();
-      handleClose();
-    } catch {
-      // stay open
-    }
-  }
-
-  async function handleUploadThenPost() {
-    if (!file) return;
-    await handleUpload();
-  }
-
-  const canUpload = !!file && !isUploading && !uploadComplete;
-  const canPost = uploadComplete && !!uploadedUrl && !!caption.trim() && !isPosting;
+  const isBusy = isUploading || isPosting;
+  const canSubmit = !!file && !!caption.trim() && !isBusy;
 
   return (
     <>
@@ -153,7 +142,7 @@ export function NewPostForm() {
             ) : (
               <div className="relative overflow-hidden rounded-xl">
                 <img src={preview!} alt="" className="aspect-4/3 w-full object-cover" />
-                {!uploadComplete && (
+                {!isBusy && (
                   <button
                     type="button"
                     onClick={handleRemoveFile}
@@ -171,11 +160,6 @@ export function NewPostForm() {
                       />
                     </div>
                     <span className="text-sm font-medium text-white">{progress}%</span>
-                  </div>
-                )}
-                {uploadComplete && (
-                  <div className="absolute top-2 right-2 rounded-full bg-green-500 px-2 py-0.5 text-xs font-medium text-white">
-                    {t('newPostUploaded')}
                   </div>
                 )}
               </div>
@@ -204,18 +188,16 @@ export function NewPostForm() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={handleClose}>
+              <Button type="button" variant="outline" onClick={handleClose} disabled={isBusy}>
                 {t('cancel')}
               </Button>
-              {!uploadComplete ? (
-                <Button onClick={handleUploadThenPost} disabled={!canUpload}>
-                  {isUploading ? t('newPostUploading', { progress }) : t('newPostUpload')}
-                </Button>
-              ) : (
-                <Button onClick={handlePost} disabled={!canPost}>
-                  {isPosting ? t('newPostPosting') : t('newPostSubmit')}
-                </Button>
-              )}
+              <Button onClick={handleSubmit} disabled={!canSubmit}>
+                {isUploading
+                  ? t('newPostUploading', { progress })
+                  : isPosting
+                    ? t('newPostPosting')
+                    : t('newPostSubmit')}
+              </Button>
             </div>
           </div>
         </DialogContent>

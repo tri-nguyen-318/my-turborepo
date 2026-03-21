@@ -3,7 +3,7 @@ import { IsString, IsNotEmpty, IsUrl, IsOptional, MaxLength } from 'class-valida
 export class CreatePostDto {
   @IsString()
   @IsNotEmpty()
-  @IsUrl({ require_tld: false })
+  @IsUrl({ require_tld: false, require_protocol: true })
   url: string;
 
   @IsString()

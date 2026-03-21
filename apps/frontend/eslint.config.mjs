@@ -25,7 +25,14 @@ export default [
     plugins: { prettier: prettierPlugin },
     rules: {
       "max-lines": ["error", { "max": 300 }],
-      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
       "@typescript-eslint/no-explicit-any": "warn",
       "prettier/prettier": "warn",
     },

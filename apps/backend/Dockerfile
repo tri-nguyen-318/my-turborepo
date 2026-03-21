@@ -34,4 +34,4 @@ ENV NODE_ENV=production
 EXPOSE 3001
 
 # 🚀 Run migration + start app
-CMD ["sh", "-c", "pnpm --filter backend exec prisma db push --accept-data-loss && pnpm --filter backend run db:seed && node apps/backend/dist/main"]
+CMD ["sh", "-c", "pnpm --filter backend exec prisma db push --accept-data-loss && (pnpm --filter backend run db:seed || true) && node apps/backend/dist/main"]

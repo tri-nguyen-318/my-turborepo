@@ -159,12 +159,16 @@ const IMAGE_POSTS = [
   },
 ];
 
-async function fetchBlurDataUrl(picsumId: string): Promise<string> {
-  const res = await fetch(`https://picsum.photos/id/${picsumId}/8/6`);
-  const buffer = await res.arrayBuffer();
-  const base64 = Buffer.from(buffer).toString('base64');
-  const contentType = res.headers.get('content-type') ?? 'image/jpeg';
-  return `data:${contentType};base64,${base64}`;
+async function fetchBlurDataUrl(picsumId: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://picsum.photos/id/${picsumId}/8/6`);
+    const buffer = await res.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    const contentType = res.headers.get('content-type') ?? 'image/jpeg';
+    return `data:${contentType};base64,${base64}`;
+  } catch {
+    return null;
+  }
 }
 
 async function main() {
