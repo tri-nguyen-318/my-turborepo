@@ -132,7 +132,7 @@
   },
   "repository": {
     "title": "File Repository",
-    "subtitle": "All uploaded files. Guests can view, logged-in users can delete their own.",
+    "subtitle": "Your private uploaded files. Only you can see and manage them.",
     "empty": "No files uploaded yet.",
     "copyUrl": "Copy URL",
     "copied": "Copied!",
@@ -141,7 +141,8 @@
     "deleteModalTitle": "Delete file",
     "deleteModalDesc": "Are you sure you want to delete \"{filename}\"? This action cannot be undone.",
     "deleteModalConfirm": "Delete",
-    "deleteModalCancel": "Cancel"
+    "deleteModalCancel": "Cancel",
+    "loginToView": "Log in to view your private files."
   },
   "error": {
     "title": "Something went wrong",

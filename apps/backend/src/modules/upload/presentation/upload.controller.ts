@@ -22,31 +22,48 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('initiate')
-  initiate(@Body() body: { filename: string; contentType: string }) {
-    return this.uploadService.initiate(body.filename, body.contentType);
+  @UseGuards(OptionalJwtAuthGuard)
+  initiate(@Body() body: { filename: string; contentType: string; isPublic?: boolean }) {
+    return this.uploadService.initiate(body.filename, body.contentType, body.isPublic ?? false);
   }
 
   @Post('url')
-  getSignedUrl(@Body() body: { key: string; uploadId: string; partNumber: number }) {
-    return this.uploadService.getSignedUrl(body.key, body.uploadId, body.partNumber);
+  getSignedUrl(
+    @Body() body: { bucket: string; key: string; uploadId: string; partNumber: number },
+  ) {
+    return this.uploadService.getSignedUrl(body.bucket, body.key, body.uploadId, body.partNumber);
   }
 
   @Post('complete')
   @UseGuards(OptionalJwtAuthGuard)
   complete(
-    @Body() body: { key: string; uploadId: string; parts: { PartNumber: number; ETag: string }[] },
+    @Body()
+    body: {
+      bucket: string;
+      key: string;
+      uploadId: string;
+      parts: { PartNumber: number; ETag: string }[];
+      isPublic?: boolean;
+    },
     @Request() req: JwtRequest,
   ) {
-    return this.uploadService.complete(body.key, body.uploadId, body.parts, req.user?.userId);
+    return this.uploadService.complete(
+      body.bucket,
+      body.key,
+      body.uploadId,
+      body.parts,
+      body.isPublic ?? false,
+      req.user?.userId,
+    );
   }
 
   @Post('abort')
-  abort(@Body() body: { key: string; uploadId: string }) {
-    return this.uploadService.abort(body.key, body.uploadId);
+  abort(@Body() body: { bucket: string; key: string; uploadId: string }) {
+    return this.uploadService.abort(body.bucket, body.key, body.uploadId);
   }
 
   @Get('files')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   listFiles(@Request() req: JwtRequest) {
     return this.uploadService.listFiles(req.user?.userId, req.user?.email);
   }

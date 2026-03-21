@@ -132,7 +132,7 @@
   },
   "repository": {
     "title": "Kho tệp",
-    "subtitle": "Tất cả tệp đã tải lên. Khách có thể xem, người dùng đăng nhập có thể xóa tệp của mình.",
+    "subtitle": "Tệp riêng tư của bạn. Chỉ bạn mới có thể xem và quản lý chúng.",
     "empty": "Chưa có tệp nào được tải lên.",
     "copyUrl": "Sao chép URL",
     "copied": "Đã sao chép!",
@@ -141,7 +141,8 @@
     "deleteModalTitle": "Xóa tệp",
     "deleteModalDesc": "Bạn có chắc muốn xóa \"{filename}\" không? Hành động này không thể hoàn tác.",
     "deleteModalConfirm": "Xóa",
-    "deleteModalCancel": "Hủy"
+    "deleteModalCancel": "Hủy",
+    "loginToView": "Đăng nhập để xem các tệp riêng tư của bạn."
   },
   "error": {
     "title": "Đã xảy ra lỗi",

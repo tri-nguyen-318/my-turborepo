@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/dialog';
 import { useListUploadedFilesQuery, useDeleteUploadedFileMutation } from '@/store/api';
 import type { UploadedFile } from '@/store/api';
+import { useAuth } from '@/hooks/useAuth';
+import { Lock } from 'lucide-react';
 
 function FileIcon({ filename }: { filename: string }) {
   const ext = filename.split('.').pop()?.toLowerCase() ?? '';
@@ -129,8 +131,20 @@ function FileCard({ file, onDelete }: { file: UploadedFile; onDelete: (id: numbe
 
 export function FileRepository() {
   const t = useTranslations('repository');
-  const { data: files = [], isLoading } = useListUploadedFilesQuery();
+  const { user } = useAuth();
+  const { data: files = [], isLoading } = useListUploadedFilesQuery(undefined, {
+    skip: !user,
+  });
   const [deleteFile] = useDeleteUploadedFileMutation();
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border py-16 text-muted-foreground">
+        <Lock className="h-10 w-10 opacity-30" />
+        <p className="text-sm">{t('loginToView')}</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

@@ -1,4 +1,10 @@
-import { Injectable, OnModuleInit, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  ForbiddenException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   S3Client,
   CreateMultipartUploadCommand,
@@ -9,6 +15,7 @@ import {
   HeadBucketCommand,
   CreateBucketCommand,
   PutBucketCorsCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PrismaService } from '../../../shared/database/prisma.service';
@@ -18,7 +25,8 @@ const OWNER_EMAIL = 'nguyenhuutri31081999nht@gmail.com';
 @Injectable()
 export class UploadService implements OnModuleInit {
   private readonly client: S3Client;
-  private readonly bucket: string;
+  private readonly publicBucket: string;
+  private readonly privateBucket: string;
 
   constructor(private readonly prisma: PrismaService) {
     this.client = new S3Client({
@@ -30,28 +38,34 @@ export class UploadService implements OnModuleInit {
         secretAccessKey: process.env.S3_SECRET_KEY || '',
       },
     });
-    this.bucket = process.env.S3_BUCKET || 'uploads';
+    this.publicBucket = process.env.S3_PUBLIC_BUCKET || 'public-uploads';
+    this.privateBucket = process.env.S3_PRIVATE_BUCKET || 'private-uploads';
   }
 
   async onModuleInit() {
+    await this.ensureBucket(this.publicBucket);
+    await this.ensureBucket(this.privateBucket);
+    await this.setBucketCors(this.publicBucket);
+    await this.setBucketCors(this.privateBucket);
+  }
+
+  private async ensureBucket(bucketName: string) {
     try {
-      await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
-      console.log(`Bucket "${this.bucket}" exists.`);
+      await this.client.send(new HeadBucketCommand({ Bucket: bucketName }));
+      console.log(`Bucket "${bucketName}" exists.`);
     } catch (error: unknown) {
       const e = error as { name?: string; $metadata?: { httpStatusCode?: number } };
       if (e.name === 'NotFound' || e.$metadata?.httpStatusCode === 404) {
         try {
-          await this.client.send(new CreateBucketCommand({ Bucket: this.bucket }));
-          console.log(`Bucket "${this.bucket}" created.`);
+          await this.client.send(new CreateBucketCommand({ Bucket: bucketName }));
+          console.log(`Bucket "${bucketName}" created.`);
         } catch (e) {
-          console.error(`Failed to create bucket "${this.bucket}":`, e);
+          console.error(`Failed to create bucket "${bucketName}":`, e);
         }
       } else {
-        console.error(`Error checking bucket "${this.bucket}":`, error);
+        console.error(`Error checking bucket "${bucketName}":`, error);
       }
     }
-
-    await this.setBucketCors(this.bucket);
   }
 
   private async setBucketCors(bucketName: string) {
@@ -76,26 +90,38 @@ export class UploadService implements OnModuleInit {
         }),
       );
       console.log(`CORS configured for bucket "${bucketName}".`);
-    } catch (e) {
-      console.error(`Failed to set CORS for "${bucketName}":`, e);
+    } catch (e: unknown) {
+      const err = e as { name?: string; Code?: string };
+      if (err.name === 'NotImplemented' || err.Code === 'NotImplemented') {
+        console.warn(
+          `PutBucketCors not supported for "${bucketName}" — configure CORS manually in your storage provider's console.`,
+        );
+      } else {
+        console.error(`Failed to set CORS for "${bucketName}":`, e);
+      }
     }
   }
 
-  async initiate(filename: string, contentType: string) {
+  async initiate(filename: string, contentType: string, isPublic: boolean) {
+    const bucket = isPublic ? this.publicBucket : this.privateBucket;
     const safeType = contentType || 'application/octet-stream';
-    const folder = safeType.startsWith('image/') ? 'images/' : 'video-uploads/';
+    const folder = safeType.startsWith('image/')
+      ? 'images/'
+      : safeType === 'application/pdf'
+        ? 'documents/'
+        : 'uploads/';
     const key = `${folder}${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${filename}`;
     const res = await this.client.send(
-      new CreateMultipartUploadCommand({ Bucket: this.bucket, Key: key, ContentType: safeType }),
+      new CreateMultipartUploadCommand({ Bucket: bucket, Key: key, ContentType: safeType }),
     );
-    return { uploadId: res.UploadId as string, key };
+    return { uploadId: res.UploadId as string, key, bucket };
   }
 
-  async getSignedUrl(key: string, uploadId: string, partNumber: number) {
+  async getSignedUrl(bucket: string, key: string, uploadId: string, partNumber: number) {
     const signedUrl = await getSignedUrl(
       this.client,
       new UploadPartCommand({
-        Bucket: this.bucket,
+        Bucket: bucket,
         Key: key,
         UploadId: uploadId,
         PartNumber: partNumber,
@@ -106,53 +132,74 @@ export class UploadService implements OnModuleInit {
   }
 
   async complete(
+    bucket: string,
     key: string,
     uploadId: string,
     parts: { PartNumber: number; ETag: string }[],
+    isPublic: boolean,
     userId?: number,
   ) {
+    if (!isPublic && !userId) {
+      throw new UnauthorizedException('You must be logged in to upload private files');
+    }
+
     await this.client.send(
       new CompleteMultipartUploadCommand({
-        Bucket: this.bucket,
+        Bucket: bucket,
         Key: key,
         UploadId: uploadId,
         MultipartUpload: { Parts: parts.sort((a, b) => a.PartNumber - b.PartNumber) },
       }),
     );
 
-    const location = `${process.env.S3_ENDPOINT}/${this.bucket}/${key}`;
-    const filename = key.split('/').pop()?.split('-').slice(2).join('-') ?? key;
+    const location = `${process.env.S3_ENDPOINT}/${bucket}/${key}`;
 
-    await this.prisma.uploadedFile.create({
-      data: { key, location, filename, userId: userId ?? null },
-    });
+    if (!isPublic) {
+      const filename = key.split('/').pop()?.split('-').slice(2).join('-') ?? key;
+      await this.prisma.uploadedFile.create({
+        data: { key, location, filename, userId: userId ?? null },
+      });
+    }
 
-    return { location, bucket: this.bucket, key };
+    return { location, bucket, key };
   }
 
-  async abort(key: string, uploadId: string) {
+  async abort(bucket: string, key: string, uploadId: string) {
     await this.client.send(
-      new AbortMultipartUploadCommand({ Bucket: this.bucket, Key: key, UploadId: uploadId }),
+      new AbortMultipartUploadCommand({ Bucket: bucket, Key: key, UploadId: uploadId }),
     );
     return { ok: true };
   }
 
   async listFiles(requestingUserId?: number, requestingEmail?: string) {
+    if (!requestingUserId) return [];
+
+    const where = requestingEmail === OWNER_EMAIL ? {} : { userId: requestingUserId };
+
     const files = await this.prisma.uploadedFile.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: { user: { select: { email: true, name: true } } },
     });
 
-    return files.map(f => ({
-      id: f.id,
-      key: f.key,
-      location: f.location,
-      filename: f.filename,
-      createdAt: f.createdAt,
-      uploader: f.user ? { email: f.user.email, name: f.user.name } : null,
-      canDelete:
-        requestingEmail === OWNER_EMAIL || (!!requestingUserId && f.userId === requestingUserId),
-    }));
+    return Promise.all(
+      files.map(async f => ({
+        id: f.id,
+        key: f.key,
+        location: await this.getPresignedGetUrl(this.privateBucket, f.key),
+        filename: f.filename,
+        createdAt: f.createdAt,
+        uploader: f.user ? { email: f.user.email, name: f.user.name } : null,
+        canDelete:
+          requestingEmail === OWNER_EMAIL || (!!requestingUserId && f.userId === requestingUserId),
+      })),
+    );
+  }
+
+  private async getPresignedGetUrl(bucket: string, key: string): Promise<string> {
+    return getSignedUrl(this.client, new GetObjectCommand({ Bucket: bucket, Key: key }), {
+      expiresIn: 3600,
+    });
   }
 
   async deleteFile(id: number, requestingUserId?: number, requestingEmail?: string) {
@@ -166,7 +213,7 @@ export class UploadService implements OnModuleInit {
       throw new ForbiddenException('You do not have permission to delete this file');
     }
 
-    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: file.key }));
+    await this.client.send(new DeleteObjectCommand({ Bucket: this.privateBucket, Key: file.key }));
     await this.prisma.uploadedFile.delete({ where: { id } });
 
     return { ok: true };

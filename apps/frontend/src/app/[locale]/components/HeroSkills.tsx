@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, GripVertical } from 'lucide-react';
 
 interface HeroSkillsProps {
   skills?: string[];
@@ -16,6 +16,12 @@ export const HeroSkills = ({ skills, isAllowedToEdit, onUpdate }: HeroSkillsProp
   const [adding, setAdding] = useState(false);
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const [localSkills, setLocalSkills] = useState(safeSkills);
+  const dragIndex = useRef<number | null>(null);
+
+  useEffect(() => {
+    setLocalSkills(safeSkills);
+  }, [skills]);
 
   useEffect(() => {
     if (adding) inputRef.current?.focus();
@@ -23,15 +29,38 @@ export const HeroSkills = ({ skills, isAllowedToEdit, onUpdate }: HeroSkillsProp
 
   const commit = () => {
     const trimmed = input.trim();
-    if (trimmed && !safeSkills.includes(trimmed)) {
-      onUpdate([...safeSkills, trimmed]);
+    if (trimmed && !localSkills.includes(trimmed)) {
+      const updated = [...localSkills, trimmed];
+      setLocalSkills(updated);
+      onUpdate(updated);
     }
     setInput('');
     setAdding(false);
   };
 
   const remove = (skill: string) => {
-    onUpdate(safeSkills.filter(s => s !== skill));
+    const updated = localSkills.filter(s => s !== skill);
+    setLocalSkills(updated);
+    onUpdate(updated);
+  };
+
+  const handleDragStart = (index: number) => {
+    dragIndex.current = index;
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragIndex.current === null || dragIndex.current === index) return;
+    const reordered = [...localSkills];
+    const [moved] = reordered.splice(dragIndex.current, 1);
+    reordered.splice(index, 0, moved);
+    dragIndex.current = index;
+    setLocalSkills(reordered);
+  };
+
+  const handleDrop = () => {
+    onUpdate(localSkills);
+    dragIndex.current = null;
   };
 
   if (!isAllowedToEdit && safeSkills.length === 0) return null;
@@ -42,11 +71,19 @@ export const HeroSkills = ({ skills, isAllowedToEdit, onUpdate }: HeroSkillsProp
         {t('skillsLabel')}
       </p>
       <div className="flex flex-wrap gap-2">
-        {safeSkills.map(skill => (
+        {localSkills.map((skill, index) => (
           <span
             key={skill}
+            draggable={isAllowedToEdit}
+            onDragStart={() => handleDragStart(index)}
+            onDragOver={e => handleDragOver(e, index)}
+            onDrop={handleDrop}
             className="group/skill flex items-center gap-1 rounded-full border border-border/60 bg-muted/60 px-3 py-1 text-sm font-medium transition-colors hover:bg-muted"
+            style={{ cursor: isAllowedToEdit ? 'grab' : 'default' }}
           >
+            {isAllowedToEdit && (
+              <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/skill:opacity-100" />
+            )}
             {skill}
             {isAllowedToEdit && (
               <button

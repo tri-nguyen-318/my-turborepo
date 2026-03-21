@@ -14,25 +14,25 @@ export interface UploadedFile {
 export const uploadApi = apiSlice.injectEndpoints({
   endpoints: builder => ({
     initiateUpload: builder.mutation<
-      { uploadId: string; key: string },
-      { filename: string; contentType: string }
+      { uploadId: string; key: string; bucket: string },
+      { filename: string; contentType: string; isPublic?: boolean }
     >({
       query: body => ({ url: '/api/upload/initiate', method: 'POST', body }),
     }),
     getSignedUrl: builder.mutation<
       { signedUrl: string },
-      { key: string; uploadId: string; partNumber: number }
+      { bucket: string; key: string; uploadId: string; partNumber: number }
     >({
       query: body => ({ url: '/api/upload/url', method: 'POST', body }),
     }),
     completeUpload: builder.mutation<
       { location: string; bucket: string; key: string },
-      { key: string; uploadId: string; parts: UploadPart[] }
+      { bucket: string; key: string; uploadId: string; parts: UploadPart[]; isPublic?: boolean }
     >({
       query: body => ({ url: '/api/upload/complete', method: 'POST', body }),
       invalidatesTags: ['UploadedFiles'],
     }),
-    abortUpload: builder.mutation<void, { key: string; uploadId: string }>({
+    abortUpload: builder.mutation<void, { bucket: string; key: string; uploadId: string }>({
       query: body => ({ url: '/api/upload/abort', method: 'POST', body }),
     }),
     listUploadedFiles: builder.query<UploadedFile[], void>({

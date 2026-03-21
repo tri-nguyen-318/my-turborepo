@@ -21,16 +21,21 @@ import { uploadApi } from '@/store/api/uploadApi';
 export const initiateMultipartUpload = async (
   filename: string,
   contentType: string,
-): Promise<{ uploadId: string; key: string }> => {
+): Promise<{ uploadId: string; key: string; bucket: string }> => {
   console.log('📤 [STEP 2] Initiating multipart upload...');
   const initRes = await withRetry(() =>
-    store.dispatch(uploadApi.endpoints.initiateUpload.initiate({ filename, contentType })).unwrap(),
+    store
+      .dispatch(
+        uploadApi.endpoints.initiateUpload.initiate({ filename, contentType, isPublic: false }),
+      )
+      .unwrap(),
   );
   console.log('✅ [STEP 3] Upload initiated. UploadId:', initRes.uploadId, 'Key:', initRes.key);
   return initRes;
 };
 
 export const getSignedUploadUrl = async (
+  bucket: string,
   fileKey: string,
   uploadId: string,
   partNumber: number,
@@ -41,7 +46,9 @@ export const getSignedUploadUrl = async (
   );
   const urlRes = await withRetry(() =>
     store
-      .dispatch(uploadApi.endpoints.getSignedUrl.initiate({ key: fileKey, uploadId, partNumber }))
+      .dispatch(
+        uploadApi.endpoints.getSignedUrl.initiate({ bucket, key: fileKey, uploadId, partNumber }),
+      )
       .unwrap(),
   );
   console.log(`✅ Got signed URL for part ${partNumber}`);
@@ -61,6 +68,7 @@ export const uploadChunkToS3 = async (
 
 export const uploadSinglePart = async (
   file: File,
+  bucket: string,
   fileKey: string,
   uploadId: string,
   partNumber: number,
@@ -70,13 +78,14 @@ export const uploadSinglePart = async (
   const end = Math.min(start + CHUNK_SIZE, file.size);
   const chunk = file.slice(start, end);
 
-  const signedUrl = await getSignedUploadUrl(fileKey, uploadId, partNumber, totalParts);
+  const signedUrl = await getSignedUploadUrl(bucket, fileKey, uploadId, partNumber, totalParts);
   const eTag = await uploadChunkToS3(signedUrl, chunk, partNumber);
 
   return { PartNumber: partNumber, ETag: eTag };
 };
 
 export const completeMultipartUpload = async (
+  bucket: string,
   fileKey: string,
   uploadId: string,
   parts: UploadPart[],
@@ -84,18 +93,24 @@ export const completeMultipartUpload = async (
   console.log('🏁 [STEP 8] Completing multipart upload...');
   const completeRes = await withRetry(() =>
     store
-      .dispatch(uploadApi.endpoints.completeUpload.initiate({ key: fileKey, uploadId, parts }))
+      .dispatch(
+        uploadApi.endpoints.completeUpload.initiate({ bucket, key: fileKey, uploadId, parts }),
+      )
       .unwrap(),
   );
   console.log('🎉 [STEP 9] Upload completed! Location:', completeRes.location);
   return completeRes;
 };
 
-export const abortMultipartUpload = async (fileKey: string, uploadId: string): Promise<void> => {
+export const abortMultipartUpload = async (
+  bucket: string,
+  fileKey: string,
+  uploadId: string,
+): Promise<void> => {
   console.log('🗑️ Attempting to abort incomplete upload...');
   try {
     await store
-      .dispatch(uploadApi.endpoints.abortUpload.initiate({ key: fileKey, uploadId }))
+      .dispatch(uploadApi.endpoints.abortUpload.initiate({ bucket, key: fileKey, uploadId }))
       .unwrap();
     console.log('✅ Upload aborted successfully');
   } catch (error) {

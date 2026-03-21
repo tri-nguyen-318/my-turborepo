@@ -100,15 +100,16 @@ export const Hero = () => {
 
     setIsUploadingCv(true);
     try {
-      const { uploadId, key } = await initiateUpload({
+      const { uploadId, key, bucket } = await initiateUpload({
         filename: file.name,
         contentType: file.type,
+        isPublic: true,
       }).unwrap();
       const totalParts = Math.ceil(file.size / CHUNK_SIZE);
       const parts: UploadPart[] = [];
       for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
         const start = (partNumber - 1) * CHUNK_SIZE;
-        const { signedUrl } = await getSignedUrl({ key, uploadId, partNumber }).unwrap();
+        const { signedUrl } = await getSignedUrl({ bucket, key, uploadId, partNumber }).unwrap();
         parts.push({
           ETag: await uploadChunk(
             signedUrl,
@@ -117,7 +118,13 @@ export const Hero = () => {
           PartNumber: partNumber,
         });
       }
-      const { location } = await completeUpload({ key, uploadId, parts }).unwrap();
+      const { location } = await completeUpload({
+        bucket,
+        key,
+        uploadId,
+        parts,
+        isPublic: true,
+      }).unwrap();
       await updateInfoMutation.mutateAsync({ cvUrl: location });
       toast.success(t('cvUploaded'));
     } catch {
