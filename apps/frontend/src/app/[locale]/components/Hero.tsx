@@ -22,12 +22,10 @@ import { HeroAvatar } from './HeroAvatar';
 import { HeroInfo } from './HeroInfo';
 import { HeroSkeleton } from './HeroSkeleton';
 
-const OWNER_EMAIL = 'nguyenhuutri31081999nht@gmail.com';
-
 export const Hero = () => {
   const t = useTranslations('hero');
   const { user, accessToken, updateUser } = useAuth();
-  const isAllowedToEdit = user?.email === OWNER_EMAIL;
+  const isAllowedToEdit = user?.role === 'ADMIN';
 
   const [updateProfile] = useUpdateProfileMutation();
   const [initiateUpload] = useInitiateUploadMutation();
@@ -144,7 +142,7 @@ export const Hero = () => {
         {t('managedByCms')}
       </p>
       <div className="container px-4 md:px-6">
-        <div className="mb-4 flex justify-end gap-2">
+        <div className="mb-4 flex flex-wrap justify-end gap-2">
           {fetchedInfo?.cvUrl &&
             (() => {
               const rawName = decodeURIComponent(fetchedInfo.cvUrl.split('/').pop() ?? 'CV.pdf');
@@ -158,7 +156,9 @@ export const Hero = () => {
                 >
                   <Download className="h-4 w-4" />
                   {t('downloadCv')}
-                  <span className="text-xs text-muted-foreground">{cvFileName}</span>
+                  <span className="hidden max-w-32 truncate text-xs text-muted-foreground sm:inline">
+                    {cvFileName}
+                  </span>
                 </Button>
               );
             })()}

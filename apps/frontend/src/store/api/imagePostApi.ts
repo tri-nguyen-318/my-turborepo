@@ -2,6 +2,7 @@ import { apiSlice } from './baseApi';
 
 export interface ImagePost {
   id: number;
+  userId: number | null;
   userName: string;
   caption: string;
   url: string;

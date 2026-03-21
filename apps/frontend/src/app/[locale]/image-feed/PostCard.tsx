@@ -24,8 +24,6 @@ import {
 
 import { avatarColor, timeAgo } from './postCard.utils';
 
-const OWNER_EMAIL = 'nguyenhuutri31081999nht@gmail.com';
-
 function PostImage({ url, blurDataUrl }: { url: string; blurDataUrl: string | null }) {
   const [fullLoaded, setFullLoaded] = useState(false);
   const t = useTranslations('imageFeed');
@@ -53,7 +51,7 @@ function PostImage({ url, blurDataUrl }: { url: string; blurDataUrl: string | nu
 export function PostCard({ post }: { post: ImagePost }) {
   const t = useTranslations('imageFeed');
   const user = useSelector((state: RootState) => state.auth.user);
-  const isOwner = user?.email === OWNER_EMAIL;
+  const isOwner = user?.role === 'ADMIN' || user?.id === post.userId;
 
   const [liked, setLiked] = useState(post.userLiked);
   const [showComments, setShowComments] = useState(false);
