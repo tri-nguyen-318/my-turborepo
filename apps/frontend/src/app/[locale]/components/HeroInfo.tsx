@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Github, Mail, MapPin, Phone, Linkedin } from 'lucide-react';
 import { EditableField } from './EditableField';
 import { HeroSkills } from './HeroSkills';
-import type { PersonalInfo } from '@/store/api/apiSlice';
+import type { PersonalInfo } from '@/store/api';
 
 interface HeroInfoProps {
   info: PersonalInfo;

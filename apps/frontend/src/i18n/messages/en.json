@@ -32,6 +32,12 @@
       "uploadId": "Upload ID:",
       "key": "Key:",
       "notAvailable": "N/A"
+    },
+    "crop": {
+      "title": "Crop Image",
+      "hint": "Drag corners to resize; drag inside to move",
+      "cancel": "Cancel",
+      "confirm": "Confirm Crop"
     }
   },
   "hero": {
@@ -59,7 +65,8 @@
     "placeholderLinkedin": "LinkedIn URL (e.g. linkedin.com/in/username)",
     "skillsLabel": "Skills",
     "addSkill": "Add skill",
-    "skillPlaceholder": "e.g. React"
+    "skillPlaceholder": "e.g. React",
+    "managedByCms": "Managed by CMS"
   },
   "main": {
     "title": "Tri's Portfolio",
@@ -69,9 +76,9 @@
     "emailDemoTitle": "Send Emails Demo",
     "emailDemoDesc": "Send an email to multiple recipients at once.",
     "invoicesDemoTitle": "Invoices Demo",
-    "invoicesDemoDesc": "Manage, search, and export invoices as CSV.",
+    "invoicesDemoDesc": "Manage invoices, process payments with email verification.",
     "tictactoeDemoTitle": "Tic-Tac-Toe",
-    "tictactoeDemoDesc": "Play vs Computer or challenge a friend in real-time.",
+    "tictactoeDemoDesc": "Play vs AI or challenge a friend in real-time.",
     "selectLanguage": "Select language",
     "langEn": "English",
     "langVi": "Tiếng Việt",
@@ -123,28 +130,64 @@
     "success": "Emails sent successfully!",
     "fail": "Failed to send emails."
   },
+  "repository": {
+    "title": "File Repository",
+    "subtitle": "All uploaded files. Guests can view, logged-in users can delete their own.",
+    "empty": "No files uploaded yet.",
+    "copyUrl": "Copy URL",
+    "copied": "Copied!",
+    "delete": "Delete",
+    "confirmDelete": "Click again to confirm",
+    "deleteModalTitle": "Delete file",
+    "deleteModalDesc": "Are you sure you want to delete \"{filename}\"? This action cannot be undone.",
+    "deleteModalConfirm": "Delete",
+    "deleteModalCancel": "Cancel"
+  },
   "error": {
     "title": "Something went wrong",
     "description": "An unexpected error occurred. Please try again.",
     "retry": "Try again"
   },
   "invoicesDemo": {
-    "title": "Invoices Demo",
-    "searchPlaceholder": "Search invoices...",
+    "title": "Invoices",
+    "searchPlaceholder": "Search by invoice ID...",
+    "paypalMethod": "Pay with PayPal",
+    "emailMethod": "Email Code",
     "customer": "Customer",
+    "customerEmail": "Customer Email",
     "amount": "Amount",
     "date": "Date",
     "status": "Status",
+    "notes": "Notes",
     "actions": "Actions",
     "edit": "Edit",
     "delete": "Delete",
     "save": "Save",
     "add": "Add",
     "cancel": "Cancel",
+    "pay": "Pay",
     "editInvoice": "Edit Invoice",
     "addInvoice": "Add Invoice",
     "exportCsv": "Export CSV",
     "paid": "Paid",
-    "unpaid": "Unpaid"
+    "unpaid": "Unpaid",
+    "required": "This field is required",
+    "loading": "Loading...",
+    "signInRequired": "Please sign in to manage invoices.",
+    "deleteConfirmTitle": "Delete Invoice",
+    "deleteConfirmDesc": "Are you sure you want to delete this invoice? This action cannot be undone.",
+    "paymentTitle": "Invoice Payment",
+    "paymentDesc": "Invoice for {customer} — ${amount}",
+    "paymentEmailHint": "A 6-character payment code will be sent to {email}.",
+    "sendPaymentRequest": "Send Payment Code",
+    "sending": "Sending...",
+    "enterTokenHint": "Enter the 6-character code sent to the customer's email.",
+    "tokenPlaceholder": "ABC123",
+    "payNow": "Pay Now",
+    "processing": "Processing...",
+    "tokenInvalid": "Invalid or expired code. Please request a new one.",
+    "paginationPrevious": "Previous",
+    "paginationNext": "Next",
+    "paginationMorePages": "More pages"
   }
 }

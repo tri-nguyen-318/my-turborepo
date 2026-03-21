@@ -1,5 +1,5 @@
-import { useGetMyInfoQuery, useUpdateMyInfoMutation } from '@/store/api/apiSlice';
-export type { PersonalInfo } from '@/store/api/apiSlice';
+import { useGetMyInfoQuery, useUpdateMyInfoMutation } from '@/store/api';
+export type { PersonalInfo } from '@/store/api';
 
 export const useGetInfo = () => useGetMyInfoQuery(undefined);
 

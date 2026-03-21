@@ -1,250 +1,197 @@
 'use client';
-import { useState, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+  useListInvoicesQuery,
+  useCreateInvoiceMutation,
+  useUpdateInvoiceMutation,
+  useDeleteInvoiceMutation,
+  useRequestPaymentMutation,
+  usePayInvoiceMutation,
+  useCreatePaypalOrderMutation,
+  useCapturePaypalOrderMutation,
+  downloadInvoicesCsv,
+} from '@/store/api';
+import type { Invoice, CreateInvoiceInput } from '@/store/api';
+import type { RootState } from '@/store/store';
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
+import { InvoiceTable } from './components/InvoiceTable';
+import { InvoiceFormDialog } from './components/InvoiceFormDialog';
+import { DeleteInvoiceDialog } from './components/DeleteInvoiceDialog';
+import { PaymentDialog } from './components/PaymentDialog';
 
-interface Invoice {
-  id: number;
-  customer: string;
-  amount: number;
-  date: string;
-  status: string;
-}
-
-const initialInvoices: Invoice[] = [
-  { id: 1, customer: 'Alice', amount: 120, date: '2023-12-01', status: 'Paid' },
-  { id: 2, customer: 'Bob', amount: 200, date: '2023-12-05', status: 'Unpaid' },
-  { id: 3, customer: 'Charlie', amount: 150, date: '2023-12-10', status: 'Paid' },
-];
+const PAGE_SIZE = 10;
 
 export default function InvoicesPage() {
   const t = useTranslations('invoicesDemo');
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const accessToken = useSelector((s: RootState) => s.auth.accessToken);
+
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Invoice | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    reset,
-    watch,
-    control,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    defaultValues: { search: '', customer: '', amount: '', date: '', status: 'Paid' },
-  });
-  const search = watch('search');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [paymentInvoice, setPaymentInvoice] = useState<Invoice | null>(null);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return invoices.filter(
-      inv =>
-        inv.customer.toLowerCase().includes(q) ||
-        inv.status.toLowerCase().includes(q) ||
-        inv.date.includes(q) ||
-        String(inv.amount).includes(q),
-    );
-  }, [search, invoices]);
+  const idFilter = search.trim() ? parseInt(search.trim()) : undefined;
 
-  const handleEdit = (inv: Invoice) => {
-    setEditing(inv);
-    setValue('customer', inv.customer);
-    setValue('amount', String(inv.amount));
-    setValue('date', inv.date);
-    setValue('status', inv.status);
-    setDialogOpen(true);
-  };
+  const { data, isLoading } = useListInvoicesQuery(
+    { page, pageSize: PAGE_SIZE, id: idFilter },
+    { skip: !accessToken },
+  );
 
-  const handleDelete = (id: number) => {
-    setInvoices(invoices.filter(inv => inv.id !== id));
-  };
+  const invoices = data?.data ?? [];
+  const totalPages = data?.totalPages ?? 1;
 
-  const onSubmit = (data: any) => {
-    if (!data.customer || !data.amount || !data.date) return;
-    if (editing) {
-      setInvoices(
-        invoices.map(inv =>
-          inv.id === editing.id ? { ...editing, ...data, amount: Number(data.amount) } : inv,
-        ),
-      );
-      setEditing(null);
+  const [createInvoice] = useCreateInvoiceMutation();
+  const [updateInvoice] = useUpdateInvoiceMutation();
+  const [deleteInvoice] = useDeleteInvoiceMutation();
+  const [requestPayment] = useRequestPaymentMutation();
+  const [payInvoice] = usePayInvoiceMutation();
+  const [createPaypalOrder] = useCreatePaypalOrderMutation();
+  const [capturePaypalOrder] = useCapturePaypalOrderMutation();
+
+  const handleFormSubmit = async (payload: CreateInvoiceInput, id?: number) => {
+    if (id) {
+      await updateInvoice({ id, ...payload });
     } else {
-      setInvoices([
-        ...invoices,
-        {
-          id: Date.now(),
-          customer: data.customer,
-          amount: Number(data.amount),
-          date: data.date,
-          status: data.status,
-        },
-      ]);
+      await createInvoice(payload);
     }
-    reset({ search, customer: '', amount: '', date: '', status: 'Paid' });
-    setDialogOpen(false);
+    setFormOpen(false);
+    setEditing(null);
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['ID', 'Customer', 'Amount', 'Date', 'Status'],
-      ...invoices.map(inv => [inv.id, inv.customer, inv.amount, inv.date, inv.status]),
-    ]
-      .map(row => row.join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'invoices.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleDelete = async () => {
+    if (deleteId === null) return;
+    await deleteInvoice(deleteId);
+    setDeleteId(null);
   };
+
+  if (!accessToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">{t('signInRequired')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col items-center bg-background p-8">
       <div className="w-full max-w-5xl flex-1 rounded-xl bg-card p-8 shadow-xl">
         <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
-        <form className="mb-4 flex flex-col gap-4 sm:flex-row" onSubmit={e => e.preventDefault()}>
-          <Input placeholder={t('searchPlaceholder')} {...register('search')} className="flex-1" />
-          <Button type="button" onClick={handleExport} variant="secondary">
+
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row">
+          <Input
+            placeholder={t('searchPlaceholder')}
+            value={search}
+            onChange={e => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="flex-1"
+            type="number"
+            min={1}
+          />
+          <Button variant="secondary" onClick={() => downloadInvoicesCsv(accessToken!)}>
             {t('exportCsv')}
           </Button>
-        </form>
-        <div className="mb-2 flex justify-end">
           <Button
             onClick={() => {
               setEditing(null);
-              reset({ search, customer: '', amount: '', date: '', status: 'Paid' });
-              setDialogOpen(true);
+              setFormOpen(true);
             }}
           >
             {t('addInvoice')}
           </Button>
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('customer')}</TableHead>
-              <TableHead>{t('amount')}</TableHead>
-              <TableHead>{t('date')}</TableHead>
-              <TableHead>{t('status')}</TableHead>
-              <TableHead>{t('actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map(inv => (
-              <TableRow key={inv.id}>
-                <TableCell>{inv.customer}</TableCell>
-                <TableCell>${inv.amount}</TableCell>
-                <TableCell>{inv.date}</TableCell>
-                <TableCell>{inv.status}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleEdit(inv)}>
-                      {t('edit')}
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(inv.id)}>
-                      {t('delete')}
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Dialog
-          open={dialogOpen}
-          onOpenChange={open => {
-            setDialogOpen(open);
-            if (!open) setEditing(null);
+
+        <InvoiceTable
+          invoices={invoices}
+          isLoading={isLoading}
+          onEdit={inv => {
+            setEditing(inv);
+            setFormOpen(true);
           }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editing ? t('editInvoice') : t('addInvoice')}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="mb-4 flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="font-medium">{t('customer')}</label>
-                <Input placeholder={t('customer')} {...register('customer', { required: true })} />
-                {errors.customer && <span className="text-xs text-red-500">{t('required')}</span>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="font-medium">{t('amount')}</label>
-                <Input
-                  placeholder={t('amount')}
-                  type="number"
-                  {...register('amount', { required: true })}
-                />
-                {errors.amount && <span className="text-xs text-red-500">{t('required')}</span>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="font-medium">{t('date')}</label>
-                <Controller
-                  name="date"
-                  control={control}
-                  render={({ field }) => (
-                    <DatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={date => field.onChange(date ? date.toISOString().slice(0, 10) : '')}
-                      placeholder={t('date') + ' (YYYY-MM-DD)'}
-                    />
-                  )}
-                />
-                {errors.date && <span className="text-xs text-red-500">{t('required')}</span>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="font-medium">{t('status')}</label>
-                <Select value={watch('status')} onValueChange={val => setValue('status', val)}>
-                  <SelectTrigger className="min-w-[120px]">
-                    <SelectValue placeholder={t('status')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Paid">{t('paid')}</SelectItem>
-                    <SelectItem value="Unpaid">{t('unpaid')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <DialogFooter className="mt-2">
-                <Button type="submit" disabled={isSubmitting}>
-                  {editing ? t('save') : t('add')}
-                </Button>
-                <DialogClose asChild>
-                  <Button variant="ghost" type="button" onClick={() => setEditing(null)}>
-                    {t('cancel')}
-                  </Button>
-                </DialogClose>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+          onDelete={setDeleteId}
+          onPay={setPaymentInvoice}
+        />
+
+        <Pagination className="mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                label={t('paginationPrevious')}
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+              />
+            </PaginationItem>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+              const near = p === 1 || p === totalPages || Math.abs(p - page) <= 1;
+              if (!near) {
+                const isEllipsis = p === 2 || p === totalPages - 1;
+                return isEllipsis ? (
+                  <PaginationItem key={p}>
+                    <PaginationEllipsis label={t('paginationMorePages')} />
+                  </PaginationItem>
+                ) : null;
+              }
+              return (
+                <PaginationItem key={p}>
+                  <PaginationLink isActive={p === page} onClick={() => setPage(p)}>
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
+
+            <PaginationItem>
+              <PaginationNext
+                label={t('paginationNext')}
+                disabled={page === totalPages}
+                onClick={() => setPage(p => p + 1)}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
+
+      <InvoiceFormDialog
+        open={formOpen}
+        editing={editing}
+        onClose={() => {
+          setFormOpen(false);
+          setEditing(null);
+        }}
+        onSubmit={handleFormSubmit}
+      />
+
+      <DeleteInvoiceDialog
+        open={deleteId !== null}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+      />
+
+      <PaymentDialog
+        invoice={paymentInvoice}
+        onClose={() => setPaymentInvoice(null)}
+        onRequestPayment={id => requestPayment(id).unwrap()}
+        onPay={(id, token) => payInvoice({ id, token }).unwrap()}
+        onCreatePaypalOrder={id => createPaypalOrder(id).unwrap()}
+        onCapturePaypalOrder={(id, orderId) => capturePaypalOrder({ id, orderId }).unwrap()}
+      />
     </div>
   );
 }

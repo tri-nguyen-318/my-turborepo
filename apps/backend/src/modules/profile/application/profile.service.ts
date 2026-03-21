@@ -1,4 +1,5 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../shared/database/prisma.service';
 
 const ALLOWED_EMAIL = 'nguyenhuutri31081999nht@gmail.com';
@@ -23,17 +24,23 @@ export class ProfileService {
     return info;
   }
 
-  async updatePersonalInfo(userEmail: string, userId: number, data: any) {
+  async updatePersonalInfo(
+    userEmail: string,
+    userId: number,
+    data: Prisma.PersonalInfoUpdateInput & { id?: number; userId?: number },
+  ) {
     if (userEmail !== ALLOWED_EMAIL) {
       throw new ForbiddenException('You do not have permission to update personal info.');
     }
 
-    const { id, userId: _uid, ...updateData } = data;
+    const updateData = Object.fromEntries(
+      Object.entries(data).filter(([k]) => k !== 'id' && k !== 'userId'),
+    ) as Prisma.PersonalInfoUncheckedUpdateInput;
 
     return this.prisma.personalInfo.upsert({
       where: { userId },
       update: updateData,
-      create: { userId, ...updateData },
+      create: { userId, ...updateData } as Prisma.PersonalInfoUncheckedCreateInput,
     });
   }
 }

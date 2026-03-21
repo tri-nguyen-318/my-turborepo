@@ -79,7 +79,8 @@ export const useMultipartUpload = ({
       console.log('✅ All parts uploaded successfully!');
 
       uploadedParts.sort((a, b) => a.PartNumber - b.PartNumber);
-      await completeMultipartUpload(fileKey, uploadId, uploadedParts);
+      const { location } = await completeMultipartUpload(fileKey, uploadId, uploadedParts);
+      setUploadDetails(prev => ({ ...prev, location }));
       setStatus(UploadStatus.COMPLETE);
     } catch (error) {
       console.error('❌ Upload process failed:', error);

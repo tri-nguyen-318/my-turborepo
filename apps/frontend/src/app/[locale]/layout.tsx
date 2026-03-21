@@ -21,32 +21,54 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: 'My TurboRepo App',
-    template: '%s | My TurboRepo App',
-  },
-  description: 'A modern web application built with Next.js, TurboRepo, and NestJS.',
-  keywords: ['Next.js', 'TurboRepo', 'NestJS', 'React', 'TypeScript', 'Email', 'Upload', 'Chat'],
-  openGraph: {
-    title: 'My TurboRepo App',
+const BASE_URL = 'https://yourdomain.com';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const ogLocale = locale === 'vi' ? 'vi_VN' : 'en_US';
+
+  return {
+    metadataBase: new URL(BASE_URL),
+    title: {
+      default: "Tri's Portfolio",
+      template: "%s | Tri's Portfolio",
+    },
     description: 'A modern web application built with Next.js, TurboRepo, and NestJS.',
-    type: 'website',
-    locale: 'en_US',
-    siteName: 'My TurboRepo App',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'My TurboRepo App',
-    description: 'A modern web application built with Next.js, TurboRepo, and NestJS.',
-  },
-  metadataBase: new URL('https://yourdomain.com'),
-  robots: {
-    index: true,
-    follow: true,
-    nocache: false,
-  },
-};
+    keywords: ['Next.js', 'TurboRepo', 'NestJS', 'React', 'TypeScript', 'Upload', 'Invoices'],
+    alternates: {
+      canonical: `${BASE_URL}/${locale}`,
+      languages: {
+        en: `${BASE_URL}/en`,
+        vi: `${BASE_URL}/vi`,
+      },
+    },
+    openGraph: {
+      title: "Tri's Portfolio",
+      description: 'A modern web application built with Next.js, TurboRepo, and NestJS.',
+      type: 'website',
+      locale: ogLocale,
+      alternateLocale: locale === 'vi' ? 'en_US' : 'vi_VN',
+      siteName: "Tri's Portfolio",
+      url: `${BASE_URL}/${locale}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: "Tri's Portfolio",
+      description: 'A modern web application built with Next.js, TurboRepo, and NestJS.',
+    },
+    icons: {
+      icon: '/favicon.ico',
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -55,7 +77,6 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  // ✅ DO NOT pass locale here
   const messages = await getMessages();
 
   const { locale } = await params;
@@ -66,19 +87,15 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-        {/* Structured Data Example */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              name: 'My TurboRepo App',
-              url: 'https://yourdomain.com',
-              logo: 'https://yourdomain.com/logo.png',
+              name: "Tri's Portfolio",
+              url: BASE_URL,
+              logo: `${BASE_URL}/logo.png`,
               sameAs: ['https://github.com/yourrepo'],
             }),
           }}

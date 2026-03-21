@@ -10,7 +10,7 @@ import {
   useGetSignedUrlMutation,
   useCompleteUploadMutation,
   uploadChunk,
-} from '@/store/api/apiSlice';
+} from '@/store/api';
 
 interface AvatarUploadProps {
   onUploadComplete: (url: string) => void;

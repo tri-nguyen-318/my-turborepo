@@ -5,18 +5,19 @@ import { useTranslations } from 'next-intl';
 import { Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { useUpdateProfileMutation } from '@/store/api/auth/authApiSlice';
+import { useUpdateProfileMutation } from '@/store/api/authApi';
 import {
   useInitiateUploadMutation,
   useGetSignedUrlMutation,
   useCompleteUploadMutation,
   uploadChunk,
   type PersonalInfo,
-} from '@/store/api/apiSlice';
+} from '@/store/api';
 import { useGetInfo, useUpdateInfo } from '@/hooks/useInfo';
 import { Button } from '@/components/ui/button';
 import { CHUNK_SIZE } from '@/app/[locale]/components/video-uploader/config';
 import type { UploadPart } from '@/app/[locale]/components/video-uploader/types';
+import { Database } from 'lucide-react';
 import { HeroAvatar } from './HeroAvatar';
 import { HeroInfo } from './HeroInfo';
 import { HeroSkeleton } from './HeroSkeleton';
@@ -171,6 +172,11 @@ export const Hero = () => {
             </>
           )}
         </div>
+
+        <p className="mb-4 flex items-center gap-1 text-xs text-muted-foreground/60">
+          <Database className="h-3 w-3" />
+          {t('managedByCms')}
+        </p>
 
         <div className="flex w-full flex-col items-start gap-8 md:flex-row md:gap-12">
           <HeroAvatar

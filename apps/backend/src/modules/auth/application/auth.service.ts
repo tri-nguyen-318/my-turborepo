@@ -54,7 +54,7 @@ export class AuthService {
     let user = await this.prisma.user.findUnique({ where: { email: details.email } });
 
     if (user) {
-      const updateData: any = {};
+      const updateData: { googleId?: string; name?: string; avatarUrl?: string } = {};
       if (!user.googleId) updateData.googleId = details.googleId;
       if (!user.name) updateData.name = `${details.firstName} ${details.lastName}`;
       if (!user.avatarUrl) updateData.avatarUrl = details.picture;

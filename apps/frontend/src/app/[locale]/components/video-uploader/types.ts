@@ -1,6 +1,7 @@
 export interface UploadDetails {
   uploadId: string | null;
   key: string | null;
+  location: string | null;
   partsUploaded: number;
   totalParts: number;
 }

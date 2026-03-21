@@ -32,6 +32,12 @@
       "uploadId": "Upload ID:",
       "key": "Key:",
       "notAvailable": "N/A"
+    },
+    "crop": {
+      "title": "Cắt ảnh",
+      "hint": "Kéo góc để thay đổi kích thước; kéo bên trong để di chuyển",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận cắt"
     }
   },
   "hero": {
@@ -59,7 +65,8 @@
     "placeholderLinkedin": "LinkedIn URL (vd: linkedin.com/in/username)",
     "skillsLabel": "Kỹ năng",
     "addSkill": "Thêm kỹ năng",
-    "skillPlaceholder": "vd. React"
+    "skillPlaceholder": "vd. React",
+    "managedByCms": "Quản lý bởi CMS"
   },
   "main": {
     "title": "Portfolio của Tri",
@@ -69,9 +76,9 @@
     "emailDemoTitle": "Demo gửi email",
     "emailDemoDesc": "Gửi email cho nhiều người cùng lúc.",
     "invoicesDemoTitle": "Demo hóa đơn",
-    "invoicesDemoDesc": "Quản lý, tìm kiếm, xuất hóa đơn CSV.",
+    "invoicesDemoDesc": "Quản lý hóa đơn, xử lý thanh toán với xác minh qua email.",
     "tictactoeDemoTitle": "Caro 3x3",
-    "tictactoeDemoDesc": "Chơi với Máy tính hoặc thách đấu bạn bè theo thời gian thực.",
+    "tictactoeDemoDesc": "Chơi với AI hoặc thách đấu bạn bè theo thời gian thực.",
     "selectLanguage": "Chọn ngôn ngữ",
     "langEn": "English",
     "langVi": "Tiếng Việt",
@@ -123,28 +130,64 @@
     "success": "Gửi email thành công!",
     "fail": "Gửi email thất bại."
   },
+  "repository": {
+    "title": "Kho tệp",
+    "subtitle": "Tất cả tệp đã tải lên. Khách có thể xem, người dùng đăng nhập có thể xóa tệp của mình.",
+    "empty": "Chưa có tệp nào được tải lên.",
+    "copyUrl": "Sao chép URL",
+    "copied": "Đã sao chép!",
+    "delete": "Xóa",
+    "confirmDelete": "Nhấn lại để xác nhận",
+    "deleteModalTitle": "Xóa tệp",
+    "deleteModalDesc": "Bạn có chắc muốn xóa \"{filename}\" không? Hành động này không thể hoàn tác.",
+    "deleteModalConfirm": "Xóa",
+    "deleteModalCancel": "Hủy"
+  },
   "error": {
     "title": "Đã xảy ra lỗi",
     "description": "Có lỗi không mong muốn. Vui lòng thử lại.",
     "retry": "Thử lại"
   },
   "invoicesDemo": {
-    "title": "Demo hóa đơn",
-    "searchPlaceholder": "Tìm kiếm hóa đơn...",
+    "title": "Hóa đơn",
+    "searchPlaceholder": "Tìm theo mã hóa đơn...",
+    "paypalMethod": "Thanh toán qua PayPal",
+    "emailMethod": "Mã Email",
     "customer": "Khách hàng",
+    "customerEmail": "Email khách hàng",
     "amount": "Số tiền",
     "date": "Ngày",
     "status": "Trạng thái",
-    "actions": "Hành động",
+    "notes": "Ghi chú",
+    "actions": "Thao tác",
     "edit": "Sửa",
     "delete": "Xóa",
     "save": "Lưu",
     "add": "Thêm",
     "cancel": "Hủy",
+    "pay": "Thanh toán",
     "editInvoice": "Sửa hóa đơn",
     "addInvoice": "Thêm hóa đơn",
     "exportCsv": "Xuất CSV",
     "paid": "Đã thanh toán",
-    "unpaid": "Chưa thanh toán"
+    "unpaid": "Chưa thanh toán",
+    "required": "Trường này là bắt buộc",
+    "loading": "Đang tải...",
+    "signInRequired": "Vui lòng đăng nhập để quản lý hóa đơn.",
+    "deleteConfirmTitle": "Xóa hóa đơn",
+    "deleteConfirmDesc": "Bạn có chắc chắn muốn xóa hóa đơn này không? Hành động này không thể hoàn tác.",
+    "paymentTitle": "Thanh toán hóa đơn",
+    "paymentDesc": "Hóa đơn cho {customer} — ${amount}",
+    "paymentEmailHint": "Mã thanh toán 6 ký tự sẽ được gửi đến {email}.",
+    "sendPaymentRequest": "Gửi mã thanh toán",
+    "sending": "Đang gửi...",
+    "enterTokenHint": "Nhập mã 6 ký tự đã được gửi đến email khách hàng.",
+    "tokenPlaceholder": "ABC123",
+    "payNow": "Thanh toán ngay",
+    "processing": "Đang xử lý...",
+    "tokenInvalid": "Mã không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu mã mới.",
+    "paginationPrevious": "Trước",
+    "paginationNext": "Tiếp",
+    "paginationMorePages": "Thêm trang"
   }
 }

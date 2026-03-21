@@ -25,22 +25,17 @@ import { Button } from '@/components/ui/button';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from './cropImage';
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from '@/components/ui/select';
 const VideoUploader = () => {
   const t = useTranslations('videoUploader');
   const tProgress = useTranslations('videoUploader.progress');
+  const tCrop = useTranslations('videoUploader.crop');
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<UploadStatus>(UploadStatus.IDLE);
   const [inputKey, setInputKey] = useState(0);
   const [uploadDetails, setUploadDetails] = useState<UploadDetails>({
     uploadId: null,
     key: null,
+    location: null,
     partsUploaded: 0,
     totalParts: 0,
   });
@@ -51,7 +46,6 @@ const VideoUploader = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({ unit: '%', x: 10, y: 10, width: 80, height: 80 });
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
-  const [aspect, setAspect] = useState<number | undefined>(1);
 
   const { handleUpload } = useMultipartUpload({
     file,
@@ -64,7 +58,13 @@ const VideoUploader = () => {
     if (file) {
       setProgress(0);
       setStatus(UploadStatus.READY);
-      setUploadDetails({ uploadId: null, key: null, partsUploaded: 0, totalParts: 0 });
+      setUploadDetails({
+        uploadId: null,
+        key: null,
+        location: null,
+        partsUploaded: 0,
+        totalParts: 0,
+      });
       if (file.type.startsWith('image/')) {
         const url = URL.createObjectURL(file);
         setImagePreview(url);
@@ -79,13 +79,17 @@ const VideoUploader = () => {
     reset();
     setProgress(0);
     setStatus(UploadStatus.IDLE);
-    setUploadDetails({ uploadId: null, key: null, partsUploaded: 0, totalParts: 0 });
+    setUploadDetails({
+      uploadId: null,
+      key: null,
+      location: null,
+      partsUploaded: 0,
+      totalParts: 0,
+    });
     setInputKey(prev => prev + 1);
   };
 
-  const fileUrl = uploadDetails.key
-    ? `${process.env.NEXT_PUBLIC_MINIO_URL}/video-uploads/${uploadDetails.key}`
-    : null;
+  const fileUrl = uploadDetails.location ?? null;
 
   const displayProgress = useMemo(() => {
     if (status === UploadStatus.COMPLETE) return tProgress('complete');
@@ -188,37 +192,19 @@ const VideoUploader = () => {
       </Card>
 
       <Dialog open={cropOpen} onOpenChange={setCropOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="flex max-h-[90vh] max-w-xl flex-col">
           <DialogHeader>
-            <DialogTitle>Crop Image</DialogTitle>
+            <DialogTitle>{tCrop('title')}</DialogTitle>
           </DialogHeader>
           {imagePreview && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Drag corners to resize; drag inside to move
-                </div>
-                <Select
-                  value={aspect ? String(aspect) : 'free'}
-                  onValueChange={v => setAspect(v === 'free' ? undefined : Number(v))}
-                >
-                  <SelectTrigger size="sm">
-                    <SelectValue placeholder="Aspect" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="1">1:1</SelectItem>
-                    <SelectItem value="1.3333333333">4:3</SelectItem>
-                    <SelectItem value="1.7777777778">16:9</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="relative flex h-80 items-center justify-center overflow-hidden rounded-md bg-muted">
-                <ReactCrop crop={crop} onChange={(c: Crop) => setCrop(c)} aspect={aspect}>
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+              <div className="text-sm text-muted-foreground">{tCrop('hint')}</div>
+              <div className="flex items-center justify-center rounded-md bg-muted">
+                <ReactCrop crop={crop} onChange={(c: Crop) => setCrop(c)}>
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="max-h-80"
+                    className="max-h-[50vh] w-auto"
                     onLoad={e => {
                       const img = e.currentTarget;
                       setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
@@ -228,9 +214,9 @@ const VideoUploader = () => {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCropOpen(false)}>
-                  Cancel
+                  {tCrop('cancel')}
                 </Button>
-                <Button onClick={handleCropConfirm}>Confirm Crop</Button>
+                <Button onClick={handleCropConfirm}>{tCrop('confirm')}</Button>
               </DialogFooter>
             </div>
           )}

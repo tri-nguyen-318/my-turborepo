@@ -1,5 +1,5 @@
 'use client';
-import { Upload, Mail, FileText, Gamepad2 } from 'lucide-react';
+import { Upload, FileText, Gamepad2 } from 'lucide-react';
 import { DemoCard } from './components/DemoCard';
 import { Hero } from './components/Hero';
 import { useTranslations } from 'next-intl';
@@ -27,14 +27,6 @@ export default function Home() {
             icon={Upload}
             accent="bg-blue-500/10"
             iconColor="text-blue-500"
-          />
-          <DemoCard
-            href="/email"
-            title={t('emailDemoTitle')}
-            description={t('emailDemoDesc')}
-            icon={Mail}
-            accent="bg-purple-500/10"
-            iconColor="text-purple-500"
           />
           <DemoCard
             href="/invoices"

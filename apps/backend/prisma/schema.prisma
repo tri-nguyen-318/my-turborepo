@@ -7,16 +7,28 @@ generator client {
 }
 
 model User {
-  id                 Int          @id @default(autoincrement())
-  email              String       @unique
+  id                 Int            @id @default(autoincrement())
+  email              String         @unique
   password           String?
   name               String?
   googleId           String?
   avatarUrl          String?
   hashedRefreshToken String?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
   personalInfo       PersonalInfo?
+  uploadedFiles      UploadedFile[]
+}
+
+model UploadedFile {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  location    String
+  filename    String
+  contentType String?
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
 }
 
 model PersonalInfo {
@@ -35,4 +47,23 @@ model PersonalInfo {
   cvUrl    String?
   career   Json?
   skills   String[]
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+}
+
+model Invoice {
+  id              Int           @id @default(autoincrement())
+  customer        String
+  customerEmail   String
+  amount          Float
+  date            DateTime
+  status          InvoiceStatus @default(UNPAID)
+  notes           String?
+  paymentToken    String?
+  paymentTokenExp DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }

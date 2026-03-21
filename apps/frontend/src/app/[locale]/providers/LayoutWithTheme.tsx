@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { LogOut } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { setCredentials, setAccessToken, clearCredentials } from '@/store/authSlice';
-import { useRefreshTokenMutation, useLazyGetProfileQuery } from '@/store/api/auth/authApiSlice';
+import { useRefreshTokenMutation, useLazyGetProfileQuery } from '@/store/api/authApi';
 
 function LayoutWithTheme({ children }: { children: React.ReactNode }) {
   const { darkMode, toggleDarkMode } = useDarkMode();

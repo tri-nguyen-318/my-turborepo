@@ -5,6 +5,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { TicTacToeModule } from './modules/tictactoe/tictactoe.module';
+import { EmailModule } from './modules/email/email.module';
+import { InvoiceModule } from './modules/invoice/invoice.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -16,6 +18,8 @@ import { HealthController } from './health.controller';
     ProfileModule,
     UploadModule,
     TicTacToeModule,
+    EmailModule,
+    InvoiceModule,
   ],
 })
 export class AppModule {}

@@ -15,7 +15,8 @@ const withRetry = async <T>(fn: () => Promise<T>, retries = 3): Promise<T> => {
   throw new Error('Retry limit exceeded');
 };
 import { store } from '@/store/store';
-import { apiSlice, uploadChunk } from '@/store/api/apiSlice';
+import { uploadChunk } from '@/store/api';
+import { uploadApi } from '@/store/api/uploadApi';
 
 export const initiateMultipartUpload = async (
   filename: string,
@@ -23,7 +24,7 @@ export const initiateMultipartUpload = async (
 ): Promise<{ uploadId: string; key: string }> => {
   console.log('📤 [STEP 2] Initiating multipart upload...');
   const initRes = await withRetry(() =>
-    store.dispatch(apiSlice.endpoints.initiateUpload.initiate({ filename, contentType })).unwrap(),
+    store.dispatch(uploadApi.endpoints.initiateUpload.initiate({ filename, contentType })).unwrap(),
   );
   console.log('✅ [STEP 3] Upload initiated. UploadId:', initRes.uploadId, 'Key:', initRes.key);
   return initRes;
@@ -40,7 +41,7 @@ export const getSignedUploadUrl = async (
   );
   const urlRes = await withRetry(() =>
     store
-      .dispatch(apiSlice.endpoints.getSignedUrl.initiate({ key: fileKey, uploadId, partNumber }))
+      .dispatch(uploadApi.endpoints.getSignedUrl.initiate({ key: fileKey, uploadId, partNumber }))
       .unwrap(),
   );
   console.log(`✅ Got signed URL for part ${partNumber}`);
@@ -83,7 +84,7 @@ export const completeMultipartUpload = async (
   console.log('🏁 [STEP 8] Completing multipart upload...');
   const completeRes = await withRetry(() =>
     store
-      .dispatch(apiSlice.endpoints.completeUpload.initiate({ key: fileKey, uploadId, parts }))
+      .dispatch(uploadApi.endpoints.completeUpload.initiate({ key: fileKey, uploadId, parts }))
       .unwrap(),
   );
   console.log('🎉 [STEP 9] Upload completed! Location:', completeRes.location);
@@ -94,7 +95,7 @@ export const abortMultipartUpload = async (fileKey: string, uploadId: string): P
   console.log('🗑️ Attempting to abort incomplete upload...');
   try {
     await store
-      .dispatch(apiSlice.endpoints.abortUpload.initiate({ key: fileKey, uploadId }))
+      .dispatch(uploadApi.endpoints.abortUpload.initiate({ key: fileKey, uploadId }))
       .unwrap();
     console.log('✅ Upload aborted successfully');
   } catch (error) {

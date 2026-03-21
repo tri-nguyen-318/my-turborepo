@@ -6,7 +6,7 @@ import { useRouter } from '@/navigation';
 import { setCredentials, clearCredentials, updateUser } from '@/store/authSlice';
 import type { RootState } from '@/store/store';
 import type { User } from '@/store/authSlice';
-import { useLogoutMutation } from '@/store/api/auth/authApiSlice';
+import { useLogoutMutation } from '@/store/api/authApi';
 
 export type { User };
 

@@ -1,24 +1,27 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, ForbiddenException, NotFoundException } from '@nestjs/common';
 import {
   S3Client,
   CreateMultipartUploadCommand,
   UploadPartCommand,
   CompleteMultipartUploadCommand,
   AbortMultipartUploadCommand,
+  DeleteObjectCommand,
   HeadBucketCommand,
   CreateBucketCommand,
-  PutBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { PrismaService } from '../../../shared/database/prisma.service';
+
+const OWNER_EMAIL = 'nguyenhuutri31081999nht@gmail.com';
 
 @Injectable()
 export class UploadService implements OnModuleInit {
   private readonly client: S3Client;
   private readonly bucket: string;
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     this.client = new S3Client({
-      region: process.env.S3_REGION || 'us-east-1',
+      region: process.env.S3_REGION || 'auto',
       endpoint: process.env.S3_ENDPOINT,
       forcePathStyle: true,
       credentials: {
@@ -33,13 +36,12 @@ export class UploadService implements OnModuleInit {
     try {
       await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
       console.log(`Bucket "${this.bucket}" exists.`);
-      await this.setBucketPolicy(this.bucket);
-    } catch (error: any) {
-      if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+    } catch (error: unknown) {
+      const e = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+      if (e.name === 'NotFound' || e.$metadata?.httpStatusCode === 404) {
         try {
           await this.client.send(new CreateBucketCommand({ Bucket: this.bucket }));
           console.log(`Bucket "${this.bucket}" created.`);
-          await this.setBucketPolicy(this.bucket);
         } catch (e) {
           console.error(`Failed to create bucket "${this.bucket}":`, e);
         }
@@ -73,7 +75,12 @@ export class UploadService implements OnModuleInit {
     return { signedUrl };
   }
 
-  async complete(key: string, uploadId: string, parts: { PartNumber: number; ETag: string }[]) {
+  async complete(
+    key: string,
+    uploadId: string,
+    parts: { PartNumber: number; ETag: string }[],
+    userId?: number,
+  ) {
     await this.client.send(
       new CompleteMultipartUploadCommand({
         Bucket: this.bucket,
@@ -82,11 +89,15 @@ export class UploadService implements OnModuleInit {
         MultipartUpload: { Parts: parts.sort((a, b) => a.PartNumber - b.PartNumber) },
       }),
     );
-    return {
-      location: `${process.env.S3_ENDPOINT}/${this.bucket}/${key}`,
-      bucket: this.bucket,
-      key,
-    };
+
+    const location = `${process.env.S3_ENDPOINT}/${this.bucket}/${key}`;
+    const filename = key.split('/').pop()?.split('-').slice(2).join('-') ?? key;
+
+    await this.prisma.uploadedFile.create({
+      data: { key, location, filename, userId: userId ?? null },
+    });
+
+    return { location, bucket: this.bucket, key };
   }
 
   async abort(key: string, uploadId: string) {
@@ -96,25 +107,38 @@ export class UploadService implements OnModuleInit {
     return { ok: true };
   }
 
-  private async setBucketPolicy(bucketName: string) {
-    try {
-      const policy = {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Sid: 'PublicReadGetObject',
-            Effect: 'Allow',
-            Principal: '*',
-            Action: ['s3:GetObject'],
-            Resource: [`arn:aws:s3:::${bucketName}/*`],
-          },
-        ],
-      };
-      await this.client.send(
-        new PutBucketPolicyCommand({ Bucket: bucketName, Policy: JSON.stringify(policy) }),
-      );
-    } catch (e) {
-      console.error(`Failed to set bucket policy for "${bucketName}":`, e);
+  async listFiles(requestingUserId?: number, requestingEmail?: string) {
+    const files = await this.prisma.uploadedFile.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { user: { select: { email: true, name: true } } },
+    });
+
+    return files.map(f => ({
+      id: f.id,
+      key: f.key,
+      location: f.location,
+      filename: f.filename,
+      createdAt: f.createdAt,
+      uploader: f.user ? { email: f.user.email, name: f.user.name } : null,
+      canDelete:
+        requestingEmail === OWNER_EMAIL || (!!requestingUserId && f.userId === requestingUserId),
+    }));
+  }
+
+  async deleteFile(id: number, requestingUserId?: number, requestingEmail?: string) {
+    const file = await this.prisma.uploadedFile.findUnique({ where: { id } });
+    if (!file) throw new NotFoundException('File not found');
+
+    const isOwner = requestingEmail === OWNER_EMAIL;
+    const isUploader = !!requestingUserId && file.userId === requestingUserId;
+
+    if (!isOwner && !isUploader) {
+      throw new ForbiddenException('You do not have permission to delete this file');
     }
+
+    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: file.key }));
+    await this.prisma.uploadedFile.delete({ where: { id } });
+
+    return { ok: true };
   }
 }
