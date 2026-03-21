@@ -14,7 +14,7 @@ import { UploadService } from '../application/upload.service';
 import { OptionalJwtAuthGuard } from '../../../shared/guards/optional-jwt.guard';
 
 interface JwtRequest {
-  user?: { userId: number; email: string } | null;
+  user?: { userId: number; email: string; role?: string } | null;
 }
 
 @Controller('api/upload')
@@ -65,12 +65,12 @@ export class UploadController {
   @Get('files')
   @UseGuards(AuthGuard('jwt'))
   listFiles(@Request() req: JwtRequest) {
-    return this.uploadService.listFiles(req.user?.userId, req.user?.email);
+    return this.uploadService.listFiles(req.user?.userId, req.user?.role);
   }
 
   @Delete('files/:id')
   @UseGuards(AuthGuard('jwt'))
   deleteFile(@Param('id', ParseIntPipe) id: number, @Request() req: JwtRequest) {
-    return this.uploadService.deleteFile(id, req.user?.userId, req.user?.email);
+    return this.uploadService.deleteFile(id, req.user?.userId, req.user?.role);
   }
 }

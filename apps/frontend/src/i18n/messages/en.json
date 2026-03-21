@@ -87,7 +87,8 @@
     "langVi": "Tiếng Việt",
     "signIn": "Sign In",
     "signUp": "Sign Up",
-    "logout": "Logout"
+    "logout": "Logout",
+    "adminPanel": "Admin Panel"
   },
   "tictactoe": {
     "title": "Tic-Tac-Toe",

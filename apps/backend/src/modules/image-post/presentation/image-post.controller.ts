@@ -18,7 +18,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 
 interface JwtRequest {
-  user: { userId: number; email: string };
+  user: { userId: number; email: string; role: string };
 }
 
 @Controller('api/image-posts')
@@ -64,6 +64,6 @@ export class ImagePostController {
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   deletePost(@Param('id', ParseIntPipe) id: number, @Request() req: JwtRequest) {
-    return this.imagePostService.deletePost(id, req.user.userId, req.user.email);
+    return this.imagePostService.deletePost(id, req.user.userId, req.user.role);
   }
 }

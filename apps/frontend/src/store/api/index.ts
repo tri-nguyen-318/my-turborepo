@@ -47,3 +47,6 @@ export {
   useUpdateProfileMutation,
   useLogoutMutation,
 } from './authApi';
+
+export type { AdminUser } from './adminApi';
+export { useListAdminUsersQuery, useSetUserRoleMutation } from './adminApi';

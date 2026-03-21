@@ -86,11 +86,11 @@ export class ImagePostService {
     return comment;
   }
 
-  async deletePost(postId: number, userId: number, email: string) {
+  async deletePost(postId: number, userId: number, role: string) {
     const post = await this.findOrThrow(postId);
 
     const isOwner = post.userId === userId;
-    const isAdmin = email === 'nguyenhuutri31081999nht@gmail.com';
+    const isAdmin = role === 'ADMIN';
 
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException('Not allowed to delete this post');

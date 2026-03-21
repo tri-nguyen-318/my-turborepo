@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { LogOut } from 'lucide-react';
+import { LogOut, Shield } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { setCredentials, setAccessToken, clearCredentials } from '@/store/authSlice';
 import { useRefreshTokenMutation, useLazyGetProfileQuery } from '@/store/api/authApi';
@@ -99,6 +99,18 @@ function LayoutWithTheme({ children }: { children: React.ReactNode }) {
                     <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                   <div className="my-1 border-t" />
+                  {user?.role === 'ADMIN' && (
+                    <>
+                      <Link
+                        href={`/${locale}/admin`}
+                        className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                      >
+                        <Shield className="h-4 w-4" />
+                        {t('adminPanel')}
+                      </Link>
+                      <div className="my-1 border-t" />
+                    </>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

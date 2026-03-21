@@ -87,7 +87,8 @@
     "langVi": "Tiếng Việt",
     "signIn": "Đăng nhập",
     "signUp": "Đăng ký",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "adminPanel": "Bảng quản trị"
   },
   "tictactoe": {
     "title": "Caro 3x3",

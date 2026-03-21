@@ -4,7 +4,7 @@ import { ProfileService } from '../application/profile.service';
 import { UpdatePersonalInfoDto } from './dto/update-personal-info.dto';
 
 interface JwtRequest {
-  user: { userId: number; email: string };
+  user: { userId: number; email: string; role: string };
 }
 
 @Controller('info')
@@ -25,6 +25,6 @@ export class ProfileController {
   @Patch('me')
   @UseGuards(AuthGuard('jwt'))
   updateMyInfo(@Request() req: JwtRequest, @Body() body: UpdatePersonalInfoDto) {
-    return this.profileService.updatePersonalInfo(req.user.email, Number(req.user.userId), body);
+    return this.profileService.updatePersonalInfo(req.user.role, Number(req.user.userId), body);
   }
 }

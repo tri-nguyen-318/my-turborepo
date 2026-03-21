@@ -87,7 +87,8 @@
     "langVi": "ベトナム語",
     "signIn": "ログイン",
     "signUp": "登録",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "adminPanel": "管理パネル"
   },
   "tictactoe": {
     "title": "三目並べ",

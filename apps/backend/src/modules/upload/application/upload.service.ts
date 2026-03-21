@@ -21,8 +21,6 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PrismaService } from '../../../shared/database/prisma.service';
 
-const OWNER_EMAIL = 'nguyenhuutri31081999nht@gmail.com';
-
 @Injectable()
 export class UploadService implements OnModuleInit {
   private readonly client: S3Client;
@@ -199,10 +197,10 @@ export class UploadService implements OnModuleInit {
     return { ok: true };
   }
 
-  async listFiles(requestingUserId?: number, requestingEmail?: string) {
+  async listFiles(requestingUserId?: number, requestingRole?: string) {
     if (!requestingUserId) return [];
 
-    const where = requestingEmail === OWNER_EMAIL ? {} : { userId: requestingUserId };
+    const where = requestingRole === 'ADMIN' ? {} : { userId: requestingUserId };
 
     const files = await this.prisma.uploadedFile.findMany({
       where,
@@ -219,7 +217,7 @@ export class UploadService implements OnModuleInit {
         createdAt: f.createdAt,
         uploader: f.user ? { email: f.user.email, name: f.user.name } : null,
         canDelete:
-          requestingEmail === OWNER_EMAIL || (!!requestingUserId && f.userId === requestingUserId),
+          requestingRole === 'ADMIN' || (!!requestingUserId && f.userId === requestingUserId),
       })),
     );
   }
@@ -230,14 +228,14 @@ export class UploadService implements OnModuleInit {
     });
   }
 
-  async deleteFile(id: number, requestingUserId?: number, requestingEmail?: string) {
+  async deleteFile(id: number, requestingUserId?: number, requestingRole?: string) {
     const file = await this.prisma.uploadedFile.findUnique({ where: { id } });
     if (!file) throw new NotFoundException('File not found');
 
-    const isOwner = requestingEmail === OWNER_EMAIL;
+    const isAdmin = requestingRole === 'ADMIN';
     const isUploader = !!requestingUserId && file.userId === requestingUserId;
 
-    if (!isOwner && !isUploader) {
+    if (!isAdmin && !isUploader) {
       throw new ForbiddenException('You do not have permission to delete this file');
     }
 

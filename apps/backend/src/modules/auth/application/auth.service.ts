@@ -6,16 +6,19 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../shared/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { SignupDto } from '../presentation/dto/signup.dto';
 import { SigninDto } from '../presentation/dto/signin.dto';
 import { ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL } from '../auth.constants';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
   ) {}
 
   async signup(dto: SignupDto) {
@@ -27,9 +30,10 @@ export class AuthService {
       data: { email: dto.email, password: hashedPassword, name: dto.name },
     });
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const role = await this.ensureAdminRole(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, role);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
-    return { ...tokens, user: this.toUserDto(user) };
+    return { ...tokens, user: this.toUserDto({ ...user, role }) };
   }
 
   async signin(dto: SigninDto) {
@@ -39,9 +43,10 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const role = await this.ensureAdminRole(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, role);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
-    return { ...tokens, user: this.toUserDto(user) };
+    return { ...tokens, user: this.toUserDto({ ...user, role }) };
   }
 
   async validateGoogleUser(details: {
@@ -72,9 +77,10 @@ export class AuthService {
       });
     }
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const role = await this.ensureAdminRole(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, role);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
-    return { ...tokens, user: this.toUserDto(user) };
+    return { ...tokens, user: this.toUserDto({ ...user, role }) };
   }
 
   async getProfile(userId: number) {
@@ -102,15 +108,15 @@ export class AuthService {
     const matches = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
     if (!matches) throw new ForbiddenException('Access Denied');
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refresh_token);
     return tokens;
   }
 
-  private async generateTokens(userId: number, email: string) {
+  private async generateTokens(userId: number, email: string, role: string) {
     const [access_token, refresh_token] = await Promise.all([
-      this.jwtService.signAsync({ sub: userId, email }, { expiresIn: ACCESS_TOKEN_TTL }),
-      this.jwtService.signAsync({ sub: userId, email }, { expiresIn: REFRESH_TOKEN_TTL }),
+      this.jwtService.signAsync({ sub: userId, email, role }, { expiresIn: ACCESS_TOKEN_TTL }),
+      this.jwtService.signAsync({ sub: userId, email, role }, { expiresIn: REFRESH_TOKEN_TTL }),
     ]);
     return { access_token, refresh_token };
   }
@@ -125,7 +131,27 @@ export class AuthService {
     email: string;
     name: string | null;
     avatarUrl: string | null;
+    role: UserRole;
   }) {
-    return { id: user.id, email: user.email, name: user.name, avatarUrl: user.avatarUrl };
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      role: user.role,
+    };
+  }
+
+  private async ensureAdminRole(
+    userId: number,
+    email: string,
+    currentRole: UserRole,
+  ): Promise<UserRole> {
+    const adminEmail = this.config.get<string>('ADMIN_EMAIL');
+    if (adminEmail && email === adminEmail && currentRole !== UserRole.ADMIN) {
+      await this.prisma.user.update({ where: { id: userId }, data: { role: UserRole.ADMIN } });
+      return UserRole.ADMIN;
+    }
+    return currentRole;
   }
 }

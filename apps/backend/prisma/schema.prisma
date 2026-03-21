@@ -6,6 +6,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id                 Int            @id @default(autoincrement())
   email              String         @unique
@@ -14,6 +19,7 @@ model User {
   googleId           String?
   avatarUrl          String?
   hashedRefreshToken String?
+  role               UserRole       @default(USER)
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   personalInfo       PersonalInfo?
