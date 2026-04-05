@@ -18,11 +18,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title           My Go Project API
+// @title           Go Backend API
 // @version         1.0
-// @description     A simple Hello World API with user management
-// @host            localhost:3000
-// @BasePath        /
+// @description     Book management API with PostgreSQL
+// @host            localhost:8080
+// @BasePath        /api
 // @schemes         http https
 
 func main() {
@@ -65,5 +65,12 @@ func main() {
 	port = ":" + port
 	fmt.Printf("Server starting on http://localhost%s\n", port)
 	fmt.Printf("API docs: http://localhost%s/swagger/index.html\n", port)
-	log.Fatal(http.ListenAndServe(port, middleware.CORS(middleware.Logging(logger)(mux))))
+
+	// Apply middleware stack: Swagger host rewrite -> CORS -> Logging
+	handler := middleware.SwaggerHostRewrite(
+		middleware.CORS(
+			middleware.Logging(logger)(mux),
+		),
+	)
+	log.Fatal(http.ListenAndServe(port, handler))
 }

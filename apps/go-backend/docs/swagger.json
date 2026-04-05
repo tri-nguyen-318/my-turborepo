@@ -5,13 +5,13 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "A simple Hello World API with user management",
-        "title": "My Go Project API",
+        "description": "Book management API with PostgreSQL",
+        "title": "Go Backend API",
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:3000",
-    "basePath": "/",
+    "host": "localhost:8080",
+    "basePath": "/api",
     "paths": {
         "/": {
             "get": {
