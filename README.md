@@ -11,6 +11,39 @@ A full-stack monorepo built with Turborepo, featuring a Next.js next-frontend an
 | `apps/go-backend`    | Go + Fiber | 8080 | Go REST API — book management, PostgreSQL, Swagger docs           |
 | `apps/aws-lab`       | Standalone | -    | AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack)  |
 
+## Architecture Diagram
+
+### Production Deployment
+
+```mermaid
+graph TB
+
+    subgraph Production["Production Deployment"]
+        vercel["🚀 Vercel<br/>Next.js Frontend<br/>port 3000"]
+
+        nest["🚀 Render<br/>NestJS Backend<br/>port 3001"]
+        go["🚀 Cloud Run<br/>Go Backend<br/>port 8080"]
+
+        %% Databases
+        nestDB[(🗄 Supabase PostgreSQL<br/>NestJS DB)]
+        goDB[(🗄 Supabase PostgreSQL<br/>Go DB)]
+
+        %% Connections
+        nest -->|PostgreSQL| nestDB
+        go -->|PostgreSQL| goDB
+
+        nest <-->|HTTP / REST| go
+    end
+
+    subgraph Browser["Client"]
+        user["👤 Browser"]
+    end
+
+    user -->|HTTPS| vercel
+    vercel -->|API → Nest| nest
+    vercel -->|API → Go| go
+```
+
 ## Tech Stack
 
 | Layer     | Technology                                                 |
