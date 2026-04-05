@@ -50,3 +50,14 @@ export {
 
 export type { AdminUser } from './adminApi';
 export { useListAdminUsersQuery, useSetUserRoleMutation } from './adminApi';
+
+export { goBackendApi } from './goBackendApi';
+
+export type { Book, CreateBookInput, UpdateBookInput, BooksResponse } from './bookApi';
+export {
+  useListBooksQuery,
+  useGetBookQuery,
+  useCreateBookMutation,
+  useUpdateBookMutation,
+  useDeleteBookMutation,
+} from './bookApi';

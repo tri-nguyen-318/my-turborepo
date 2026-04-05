@@ -1,5 +1,5 @@
 'use client';
-import { Upload, FileText, Gamepad2, Images } from 'lucide-react';
+import { Upload, FileText, Gamepad2, Images, BookOpen } from 'lucide-react';
 import { DemoCard } from './components/DemoCard';
 import { Hero } from './components/Hero';
 import { useTranslations } from 'next-intl';
@@ -43,6 +43,14 @@ export default function Home() {
             icon={Images}
             accent="bg-emerald-500/10"
             iconColor="text-emerald-500"
+          />
+          <DemoCard
+            href="/books"
+            title={t('bookManagementDemoTitle')}
+            description={t('bookManagementDemoDesc')}
+            icon={BookOpen}
+            accent="bg-purple-500/10"
+            iconColor="text-purple-500"
           />
         </div>
       </div>
