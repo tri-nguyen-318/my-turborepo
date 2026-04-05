@@ -34,10 +34,10 @@ services:
       retries: 10
 
   # ── Applications ─────────────────────────────────────────────────────────────
-  backend:
+  nest-backend:
     build:
       context: .
-      dockerfile: apps/backend/Dockerfile
+      dockerfile: apps/nest-backend/Dockerfile
     ports:
       - "${PORT:-3001}:3001"
     env_file:
@@ -54,12 +54,12 @@ services:
       context: .
       dockerfile: apps/next-frontend/Dockerfile
       args:
-        # Browser calls the backend directly, so this must be the host address
+        # Browser calls the nest-backend directly, so this must be the host address
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      - nest-backend
     restart: unless-stopped
 
 volumes:

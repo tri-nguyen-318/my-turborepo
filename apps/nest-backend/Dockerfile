@@ -11,9 +11,9 @@ RUN corepack enable && corepack prepare pnpm@10.7.0 --activate
 # Copy root deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copy backend package + prisma early (for caching)
-COPY apps/backend/package.json ./apps/backend/
-COPY apps/backend/prisma ./apps/backend/prisma
+# Copy nest-backend package + prisma early (for caching)
+COPY apps/nest-backend/package.json ./apps/nest-backend/
+COPY apps/nest-backend/prisma ./apps/nest-backend/prisma
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile --shamefully-hoist
@@ -22,10 +22,10 @@ RUN pnpm install --frozen-lockfile --shamefully-hoist
 COPY . .
 
 # Generate Prisma client
-RUN pnpm --filter backend exec prisma generate
+RUN pnpm --filter nest-backend exec prisma generate
 
-# Build backend
-RUN pnpm --filter backend run build
+# Build nest-backend
+RUN pnpm --filter nest-backend run build
 
 # Set production env
 ENV NODE_ENV=production
@@ -34,4 +34,4 @@ ENV NODE_ENV=production
 EXPOSE 3001
 
 # 🚀 Run migration + start app
-CMD ["sh", "-c", "pnpm --filter backend exec prisma db push --accept-data-loss && node apps/backend/dist/main"]
+CMD ["sh", "-c", "pnpm --filter nest-backend exec prisma db push --accept-data-loss && node apps/nest-backend/dist/main"]

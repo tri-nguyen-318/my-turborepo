@@ -1,13 +1,13 @@
 # My Turborepo
 
-A full-stack monorepo built with Turborepo, featuring a Next.js next-frontend and NestJS backend with large video file multipart uploads, real-time chat, authentication, and more.
+A full-stack monorepo built with Turborepo, featuring a Next.js next-frontend and NestJS nest-backend with large video file multipart uploads, real-time chat, authentication, and more.
 
 ## Apps
 
 | App                  | Description                                                                 |
 | -------------------- | --------------------------------------------------------------------------- |
 | `apps/next-frontend` | Next.js 16 app — upload UI, chat, auth, leaderboard, i18n (EN/VI)           |
-| `apps/backend`       | NestJS API — auth, upload, chat gateway, profile, Prisma ORM                |
+| `apps/nest-backend`  | NestJS API — auth, upload, chat gateway, profile, Prisma ORM                |
 | `apps/aws-lab`       | Standalone AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack) |
 
 ## Tech Stack
@@ -30,7 +30,7 @@ A full-stack monorepo built with Turborepo, featuring a Next.js next-frontend an
 
 ## Run with Docker (one command)
 
-> Runs the full stack — next-frontend, backend, PostgreSQL, and MinIO — with no local setup required.
+> Runs the full stack — next-frontend, nest-backend, PostgreSQL, and MinIO — with no local setup required.
 
 ### 1. Configure secrets
 
@@ -83,7 +83,7 @@ docker compose down -v    # stop and wipe all volumes
 
 ### Deploying to a remote server
 
-Set `NEXT_PUBLIC_API_URL` in `.env` to the public backend URL before building:
+Set `NEXT_PUBLIC_API_URL` in `.env` to the public nest-backend URL before building:
 
 ```env
 NEXT_PUBLIC_API_URL=https://your-api-domain.com
@@ -117,7 +117,7 @@ This starts PostgreSQL, MongoDB, Redis, MinIO, RabbitMQ, and LocalStack.
 
 ### 3. Set up environment variables
 
-**Backend** — copy and fill in `apps/backend/.env`:
+**Backend** — copy and fill in `apps/nest-backend/.env`:
 
 ```env
 NODE_ENV=development
@@ -148,7 +148,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ### 4. Run database migrations
 
 ```bash
-cd apps/backend
+cd apps/nest-backend
 pnpm db:push
 ```
 
@@ -181,7 +181,7 @@ Run a specific app:
 
 ```bash
 pnpm --filter next-frontend dev
-pnpm --filter backend dev
+pnpm --filter nest-backend dev
 ```
 
 ## Upload Flow
@@ -195,10 +195,10 @@ Frontend → POST /upload/complete   → Backend finalises the multipart upload
 
 ## Deployment
 
-| App             | Platform | Notes                                                                              |
-| --------------- | -------- | ---------------------------------------------------------------------------------- |
-| `next-frontend` | Vercel   | Connect repo, set root to `apps/next-frontend`                                     |
-| `backend`       | Render   | Docker deploy, Dockerfile at `apps/backend/Dockerfile`, build context at repo root |
+| App             | Platform | Notes                                                                                   |
+| --------------- | -------- | --------------------------------------------------------------------------------------- |
+| `next-frontend` | Vercel   | Connect repo, set root to `apps/next-frontend`                                          |
+| `nest-backend`  | Render   | Docker deploy, Dockerfile at `apps/nest-backend/Dockerfile`, build context at repo root |
 
 **Render environment variables** required at runtime:
 `DATABASE_URL`, `FRONTEND_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and S3/MinIO credentials.
@@ -213,7 +213,7 @@ my-turborepo/
 │   │       ├── app/[locale]/   # Pages with i18n routing
 │   │       ├── components/ui/  # Shared UI components
 │   │       └── lib/api/        # API client functions
-│   ├── backend/                # NestJS API
+│   ├── nest-backend/                # NestJS API
 │   │   └── src/
 │   │       └── modules/
 │   │           ├── auth/       # JWT + Google OAuth

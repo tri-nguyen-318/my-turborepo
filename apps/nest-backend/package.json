@@ -1,11 +1,11 @@
 {
-  "name": "backend",
+  "name": "nest-backend",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "build": "nest build",
-    "docker:build": "docker build -t backend -f ../../apps/backend/Dockerfile ../..",
-    "docker:run": "docker run --rm -p 3001:3001 --env-file .env backend",
+    "docker:build": "docker build -t nest-backend -f ../../apps/nest-backend/Dockerfile ../..",
+    "docker:run": "docker run --rm -p 3001:3001 --env-file .env nest-backend",
     "db:generate": "prisma generate --schema=./prisma/schema.prisma",
     "db:push": "prisma db push --schema=./prisma/schema.prisma",
     "db:seed": "ts-node prisma/seed.ts",
