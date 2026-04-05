@@ -1,0 +1,51 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE/Editor
+.vscode
+.idea
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test & coverage
+*.test
+*.out
+coverage/
+.coverage
+
+# Build artifacts
+bin/
+dist/
+target/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Dependencies (will be downloaded fresh in Docker)
+vendor/
+
+# Docker files (don't need to be in image)
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Documentation (keep docs/ - it's a Go package)
+README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/

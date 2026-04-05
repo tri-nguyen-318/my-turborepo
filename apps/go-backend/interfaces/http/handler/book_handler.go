@@ -21,13 +21,13 @@ func NewBookHandler(uc usecase.BookUseCase) *BookHandler {
 
 // GetBooks godoc
 // @Summary Get all books with pagination
-// @Description Returns a paginated list of all books in the system
+// @Description Returns a paginated list of all books with total count, current page, page size, and total pages
 // @Tags books
 // @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param pageSize query int false "Page size" default(10)
-// @Success 200 {object} dto.BooksResponse
-// @Failure 500 {object} map[string]string
+// @Param page query int false "Page number" default(1) example(1)
+// @Param pageSize query int false "Page size (items per page)" default(10) example(10)
+// @Success 200 {object} dto.BooksResponse "Array of books with pagination metadata (data, total, page, pageSize, totalPages)"
+// @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/books [get]
 func (h *BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
@@ -83,13 +83,13 @@ func (h *BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 
 // GetBookByID godoc
 // @Summary Get book by ID
-// @Description Returns a specific book by their ID
+// @Description Returns a specific book by their ID with all attributes (id, title, author, year, created_at, updated_at)
 // @Tags books
 // @Produce json
-// @Param id path int true "Book ID"
-// @Success 200 {object} dto.BookDTO
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param id path int true "Book ID" example(1)
+// @Success 200 {object} dto.BookDTO "Book object with id, title, author, year, created_at, updated_at"
+// @Failure 404 {object} map[string]string "Book not found"
+// @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/books/{id} [get]
 func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
@@ -123,14 +123,14 @@ func (h *BookHandler) GetBookByID(w http.ResponseWriter, r *http.Request) {
 
 // CreateBook godoc
 // @Summary Create a new book
-// @Description Create a new book with the provided details
+// @Description Create a new book with required fields: title, author, year. Returns created book object with id, created_at, updated_at
 // @Tags books
 // @Accept json
 // @Produce json
-// @Param input body map[string]interface{} true "Book details"
-// @Success 201 {object} dto.BookDTO
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param input body dto.CreateBookRequest true "Book creation request"
+// @Success 201 {object} dto.BookDTO "Book created with auto-generated id, created_at, updated_at"
+// @Failure 400 {object} map[string]string "Invalid request: missing title, author, or year"
+// @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/books [post]
 func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	var req map[string]interface{}
@@ -172,16 +172,16 @@ func (h *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 
 // UpdateBook godoc
 // @Summary Update a book
-// @Description Update an existing book's details
+// @Description Update an existing book by ID. Required fields: title, author, year. Updates the updated_at timestamp
 // @Tags books
 // @Accept json
 // @Produce json
-// @Param id path int true "Book ID"
-// @Param input body map[string]interface{} true "Updated book details"
-// @Success 200 {object} dto.BookDTO
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param id path int true "Book ID to update" example(1)
+// @Param input body dto.UpdateBookRequest true "Book update request"
+// @Success 200 {object} dto.BookDTO "Updated book object with modified title, author, year, and updated_at"
+// @Failure 400 {object} map[string]string "Invalid request: missing title, author, or year"
+// @Failure 404 {object} map[string]string "Book not found"
+// @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/books/{id} [put]
 func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
@@ -235,12 +235,12 @@ func (h *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 
 // DeleteBook godoc
 // @Summary Delete a book
-// @Description Delete a book by their ID
+// @Description Delete a book by ID. Returns 204 No Content on success
 // @Tags books
-// @Param id path int true "Book ID"
-// @Success 204
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param id path int true "Book ID to delete" example(1)
+// @Success 204 "Book deleted successfully (no response body)"
+// @Failure 400 {object} map[string]string "Invalid book ID format"
+// @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/books/{id} [delete]
 func (h *BookHandler) DeleteBook(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")

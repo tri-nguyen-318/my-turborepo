@@ -3,14 +3,14 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Copy go mod files
-COPY go.mod go.sum* ./
+# Copy go mod files from go-backend app
+COPY apps/go-backend/go.mod apps/go-backend/go.sum* ./
 
 # Download dependencies
 RUN go mod download 2>/dev/null || true
 
-# Copy source code
-COPY . .
+# Copy go-backend source code
+COPY apps/go-backend/ .
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
@@ -25,7 +25,7 @@ WORKDIR /root/
 # Copy the binary from builder
 COPY --from=builder /app/main .
 
-# Cloud Run expects port 8080 by default
+# Set port
 ENV PORT=8080
 
 # Expose port

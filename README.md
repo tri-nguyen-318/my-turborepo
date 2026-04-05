@@ -4,11 +4,12 @@ A full-stack monorepo built with Turborepo, featuring a Next.js next-frontend an
 
 ## Apps
 
-| App                  | Description                                                                 |
-| -------------------- | --------------------------------------------------------------------------- |
-| `apps/next-frontend` | Next.js 16 app — upload UI, chat, auth, leaderboard, i18n (EN/VI)           |
-| `apps/nest-backend`  | NestJS API — auth, upload, chat gateway, profile, Prisma ORM                |
-| `apps/aws-lab`       | Standalone AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack) |
+| App                  | Tech       | Port | Description                                                       |
+| -------------------- | ---------- | ---- | ----------------------------------------------------------------- |
+| `apps/next-frontend` | Next.js 16 | 3000 | Next.js 16 app — upload UI, chat, auth, leaderboard, i18n (EN/VI) |
+| `apps/nest-backend`  | NestJS 10  | 3001 | NestJS API — auth, upload, chat gateway, profile, Prisma ORM      |
+| `apps/go-backend`    | Go + Fiber | 8080 | Go REST API — book management, PostgreSQL, Swagger docs           |
+| `apps/aws-lab`       | Standalone | -    | AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack)  |
 
 ## Tech Stack
 
@@ -28,68 +29,80 @@ A full-stack monorepo built with Turborepo, featuring a Next.js next-frontend an
 - pnpm 10+
 - Docker & Docker Compose
 
-## Run with Docker (one command)
+## Run with Docker
 
-> Runs the full stack — next-frontend, nest-backend, PostgreSQL, and MinIO — with no local setup required.
+### Run Individual Services with Databases
 
-### 1. Configure secrets
+Each service has its own `docker-compose.yml` with its database and environment pre-configured.
 
-```bash
-cp .env.example .env
-```
-
-Open `.env` and set at minimum:
-
-```env
-JWT_SECRET=any-long-random-string
-```
-
-Optional extras (Google OAuth, Groq AI, SMTP email):
-
-```env
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GROQ_API_KEY=...
-SMTP_HOST=...
-SMTP_USER=...
-SMTP_PASS=...
-```
-
-### 2. Start
+**Go Backend + PostgreSQL:**
 
 ```bash
-docker compose up --build
+docker compose -f apps/go-backend/docker-compose.yml up --build
 ```
 
-| Service       | URL                   |
-| ------------- | --------------------- |
-| Frontend      | http://localhost:3000 |
-| Backend API   | http://localhost:3001 |
-| MinIO Console | http://localhost:9003 |
+- Go API: http://localhost:8080
+- API Docs: http://localhost:8080/swagger/index.html
+- PostgreSQL: localhost:5435 (go_user / go_password)
 
-> First build takes a few minutes. After that: `docker compose up`
+**NestJS Backend + PostgreSQL:**
 
-### 3. First-time MinIO setup
+```bash
+docker compose -f apps/nest-backend/docker-compose.yml up --build
+```
+
+- NestJS API: http://localhost:3001
+- PostgreSQL: localhost:5432
+
+**Next.js Frontend:**
+
+```bash
+docker compose -f apps/next-frontend/docker-compose.yml up --build
+```
+
+- Frontend: http://localhost:3000
+- Requires nest-backend running at http://localhost:3001
+
+### Configure Environment Variables
+
+**Root `.env`** (for docker compose up):
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+DATABASE_URL=postgresql://nestuser:nestpass@postgres:5432/nestdb
+```
+
+**App-specific `.env`** (when running isolated):
+
+- `apps/go-backend/.env` — Go backend config
+- `apps/nest-backend/.env` — NestJS backend config
+- `apps/next-frontend/.env.local` — Next.js config
+
+### Stop Services
+
+```bash
+docker compose down           # stop, keep data
+docker compose down -v        # stop and remove volumes (deletes databases)
+
+# For individual services:
+docker compose -f apps/go-backend/docker-compose.yml down -v
+```
+
+### View Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f go-backend
+docker compose logs -f nest-backend
+```
+
+### First-time Setup (if using MinIO)
 
 1. Open http://localhost:9003, log in: `minioadmin` / `minioadminpassword`
 2. Go to **Buckets → uploads → Access Policy** → set to **Public**
-
-### Stop
-
-```bash
-docker compose down       # stop, keep data
-docker compose down -v    # stop and wipe all volumes
-```
-
-### Deploying to a remote server
-
-Set `NEXT_PUBLIC_API_URL` in `.env` to the public nest-backend URL before building:
-
-```env
-NEXT_PUBLIC_API_URL=https://your-api-domain.com
-```
-
-Then rebuild: `docker compose up --build`
 
 ---
 

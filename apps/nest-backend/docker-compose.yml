@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # ── PostgreSQL Dev ────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: nest-backend-postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nest-backend-network
+
+  # ── PostgreSQL Test ──────────────────────────────────────────────────────
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: nest-backend-postgres-test
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase_test
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nest-backend-network
+
+  # ── MinIO ─────────────────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: nest-backend-minio
+    ports:
+      - "9002:9000" # S3 API
+      - "9003:9001" # MinIO Console → http://localhost:9003
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - nest-backend-network
+
+  # ── NestJS App ────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: ../../
+      dockerfile: apps/nest-backend/Dockerfile
+    container_name: nest-backend-app
+    env_file:
+      - .env
+    environment:
+      # Override for Docker network communication
+      DATABASE_URL: postgresql://user:password@postgres:5432/mydatabase?schema=public
+      S3_ENDPOINT: http://minio:9000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - nest-backend-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  postgres_test_data:
+  minio_data:
+
+networks:
+  nest-backend-network:
+    driver: bridge

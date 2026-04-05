@@ -1,67 +1,28 @@
+version: "3.8"
+
 services:
-  # ── Infrastructure ───────────────────────────────────────────────────────────
-  postgres:
-    image: postgres:15
+  go-backend:
+    build:
+      context: .
+      dockerfile: apps/go-backend/Dockerfile
+    container_name: go-backend
     ports:
-      - "5434:5432"
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydatabase
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      - "8080:8080"
 
-  minio:
-    image: minio/minio:latest
-    ports:
-      - "9002:9000" # S3 API
-      - "9003:9001" # MinIO Console → http://localhost:9003
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadminpassword
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  # ── Applications ─────────────────────────────────────────────────────────────
   nest-backend:
     build:
       context: .
       dockerfile: apps/nest-backend/Dockerfile
+    container_name: nest-backend
     ports:
-      - "${PORT:-3001}:3001"
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    restart: unless-stopped
+      - "3001:3001"
 
   next-frontend:
     build:
       context: .
       dockerfile: apps/next-frontend/Dockerfile
       args:
-        # Browser calls the nest-backend directly, so this must be the host address
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+        NEXT_PUBLIC_API_URL: http://localhost:3001
+    container_name: next-frontend
     ports:
       - "3000:3000"
-    depends_on:
-      - nest-backend
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-  minio_data:

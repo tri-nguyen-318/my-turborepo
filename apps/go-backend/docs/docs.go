@@ -27,7 +27,7 @@ const docTemplate = `{
         },
         "/api/books": {
             "get": {
-                "description": "Returns a paginated list of all books in the system",
+                "description": "Returns a paginated list of all books with total count, current page, page size, and total pages",
                 "produces": [
                     "application/json"
                 ],
@@ -39,6 +39,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
@@ -46,20 +47,21 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "default": 10,
-                        "description": "Page size",
+                        "example": 10,
+                        "description": "Page size (items per page)",
                         "name": "pageSize",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Array of books with pagination metadata (data, total, page, pageSize, totalPages)",
                         "schema": {
                             "$ref": "#/definitions/dto.BooksResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -70,7 +72,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new book with the provided details",
+                "description": "Create a new book with required fields: title, author, year. Returns created book object with id, created_at, updated_at",
                 "consumes": [
                     "application/json"
                 ],
@@ -83,25 +85,24 @@ const docTemplate = `{
                 "summary": "Create a new book",
                 "parameters": [
                     {
-                        "description": "Book details",
+                        "description": "Book creation request",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.CreateBookRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Book created with auto-generated id, created_at, updated_at",
                         "schema": {
                             "$ref": "#/definitions/dto.BookDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request: missing title, author, or year",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -110,7 +111,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -123,7 +124,7 @@ const docTemplate = `{
         },
         "/api/books/{id}": {
             "get": {
-                "description": "Returns a specific book by their ID",
+                "description": "Returns a specific book by their ID with all attributes (id, title, author, year, created_at, updated_at)",
                 "produces": [
                     "application/json"
                 ],
@@ -134,6 +135,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Book ID",
                         "name": "id",
                         "in": "path",
@@ -142,13 +144,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Book object with id, title, author, year, created_at, updated_at",
                         "schema": {
                             "$ref": "#/definitions/dto.BookDTO"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Book not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -157,7 +159,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -168,7 +170,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update an existing book's details",
+                "description": "Update an existing book by ID. Required fields: title, author, year. Updates the updated_at timestamp",
                 "consumes": [
                     "application/json"
                 ],
@@ -182,31 +184,31 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Book ID",
+                        "example": 1,
+                        "description": "Book ID to update",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Updated book details",
+                        "description": "Book update request",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.UpdateBookRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Updated book object with modified title, author, year, and updated_at",
                         "schema": {
                             "$ref": "#/definitions/dto.BookDTO"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request: missing title, author, or year",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -215,7 +217,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Book not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -224,7 +226,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -235,7 +237,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a book by their ID",
+                "description": "Delete a book by ID. Returns 204 No Content on success",
                 "tags": [
                     "books"
                 ],
@@ -243,7 +245,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Book ID",
+                        "example": 1,
+                        "description": "Book ID to delete",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -251,10 +254,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "Book deleted successfully (no response body)"
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid book ID format",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -263,7 +266,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -319,6 +322,40 @@ const docTemplate = `{
                 },
                 "totalPages": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.CreateBookRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "Alan Donovan"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Go Programming Language"
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 2015
+                }
+            }
+        },
+        "dto.UpdateBookRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "Alan Donovan"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "The Go Programming Language 2nd Ed"
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 2024
                 }
             }
         }
