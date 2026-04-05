@@ -7,5 +7,5 @@
   "useTabs": false,
   "arrowParens": "avoid",
   "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindStylesheet": "./apps/frontend/src/app/[locale]/globals.css"
+  "tailwindStylesheet": "./apps/next-frontend/src/app/[locale]/globals.css"
 }

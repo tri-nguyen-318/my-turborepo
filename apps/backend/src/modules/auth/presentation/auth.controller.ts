@@ -107,7 +107,7 @@ export class AuthController {
     return {
       httpOnly: true,
       secure: isProduction,
-      // SameSite=None is required for cross-domain cookies in production (frontend and backend on different domains).
+      // SameSite=None is required for cross-domain cookies in production (next-frontend and backend on different domains).
       // SameSite=Lax blocks cross-site POST requests, which breaks /auth/refresh.
       sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
       maxAge,

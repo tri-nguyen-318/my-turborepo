@@ -12,7 +12,7 @@ RUN pnpm install --frozen-lockfile
 ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-RUN pnpm --filter frontend run build
+RUN pnpm --filter next-frontend run build
 
 # ── Production runner ─────────────────────────────────────────────────────────
 FROM base AS runner
@@ -22,9 +22,9 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 # standalone output mirrors the monorepo structure inside /app
-COPY --from=builder /app/apps/frontend/.next/standalone ./
-COPY --from=builder /app/apps/frontend/.next/static ./apps/frontend/.next/static
-COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
+COPY --from=builder /app/apps/next-frontend/.next/standalone ./
+COPY --from=builder /app/apps/next-frontend/.next/static ./apps/next-frontend/.next/static
+COPY --from=builder /app/apps/next-frontend/public ./apps/next-frontend/public
 
 EXPOSE 3000
-CMD ["node", "apps/frontend/server.js"]
+CMD ["node", "apps/next-frontend/server.js"]

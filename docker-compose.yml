@@ -49,10 +49,10 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  frontend:
+  next-frontend:
     build:
       context: .
-      dockerfile: apps/frontend/Dockerfile
+      dockerfile: apps/next-frontend/Dockerfile
       args:
         # Browser calls the backend directly, so this must be the host address
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}

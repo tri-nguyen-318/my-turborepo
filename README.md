@@ -1,14 +1,14 @@
 # My Turborepo
 
-A full-stack monorepo built with Turborepo, featuring a Next.js frontend and NestJS backend with large video file multipart uploads, real-time chat, authentication, and more.
+A full-stack monorepo built with Turborepo, featuring a Next.js next-frontend and NestJS backend with large video file multipart uploads, real-time chat, authentication, and more.
 
 ## Apps
 
-| App             | Description                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| `apps/frontend` | Next.js 16 app — upload UI, chat, auth, leaderboard, i18n (EN/VI)           |
-| `apps/backend`  | NestJS API — auth, upload, chat gateway, profile, Prisma ORM                |
-| `apps/aws-lab`  | Standalone AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack) |
+| App                  | Description                                                                 |
+| -------------------- | --------------------------------------------------------------------------- |
+| `apps/next-frontend` | Next.js 16 app — upload UI, chat, auth, leaderboard, i18n (EN/VI)           |
+| `apps/backend`       | NestJS API — auth, upload, chat gateway, profile, Prisma ORM                |
+| `apps/aws-lab`       | Standalone AWS learning lab (S3, DynamoDB, SQS, SNS, Lambda via LocalStack) |
 
 ## Tech Stack
 
@@ -30,7 +30,7 @@ A full-stack monorepo built with Turborepo, featuring a Next.js frontend and Nes
 
 ## Run with Docker (one command)
 
-> Runs the full stack — frontend, backend, PostgreSQL, and MinIO — with no local setup required.
+> Runs the full stack — next-frontend, backend, PostgreSQL, and MinIO — with no local setup required.
 
 ### 1. Configure secrets
 
@@ -139,7 +139,7 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
-**Frontend** — create `apps/frontend/.env.local`:
+**Frontend** — create `apps/next-frontend/.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
@@ -180,7 +180,7 @@ pnpm typecheck    # Type-check all apps
 Run a specific app:
 
 ```bash
-pnpm --filter frontend dev
+pnpm --filter next-frontend dev
 pnpm --filter backend dev
 ```
 
@@ -195,10 +195,10 @@ Frontend → POST /upload/complete   → Backend finalises the multipart upload
 
 ## Deployment
 
-| App        | Platform | Notes                                                                              |
-| ---------- | -------- | ---------------------------------------------------------------------------------- |
-| `frontend` | Vercel   | Connect repo, set root to `apps/frontend`                                          |
-| `backend`  | Render   | Docker deploy, Dockerfile at `apps/backend/Dockerfile`, build context at repo root |
+| App             | Platform | Notes                                                                              |
+| --------------- | -------- | ---------------------------------------------------------------------------------- |
+| `next-frontend` | Vercel   | Connect repo, set root to `apps/next-frontend`                                     |
+| `backend`       | Render   | Docker deploy, Dockerfile at `apps/backend/Dockerfile`, build context at repo root |
 
 **Render environment variables** required at runtime:
 `DATABASE_URL`, `FRONTEND_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and S3/MinIO credentials.
@@ -208,7 +208,7 @@ Frontend → POST /upload/complete   → Backend finalises the multipart upload
 ```
 my-turborepo/
 ├── apps/
-│   ├── frontend/               # Next.js app
+│   ├── next-frontend/               # Next.js app
 │   │   └── src/
 │   │       ├── app/[locale]/   # Pages with i18n routing
 │   │       ├── components/ui/  # Shared UI components
